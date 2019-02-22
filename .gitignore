@@ -1,0 +1,14 @@
+*.swp
+
+*.pyc
+*.pyo
+__pycache__
+.mypy_cache
+
+/elements
+
+test/*/element
+test/parsing/data/*
+!test/parsing/data/precious.txt
+!test/parsing/data/not-precious
+!test/parsing/data/spam

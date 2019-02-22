@@ -1,0 +1,20 @@
+#Elements.args: docroot:bind>/srv:ro port:env>PORT:int -H:env>HOST -v:env>VERBOSE:bool \
+#               -d:bind>/data -n:name
+
+# This is a normal comment.
+
+#Elements.bind: $docroot/lighttpd.conf:/srv/lighttpd.conf:ro \
+#               $d/precious.txt:/data/precious.txt:ro \
+Bootstrap: docker
+#Elements.env: TEST=hello API_KEY:int=$HOST_VAR \
+#      #       THIS_SHOULD_NOT_APPEAR=IN_THE_CONTAINER
+#              HOST_CONF_FILE=$HOST/.config.yml TZ=$TZ \
+#              SHOULD_BE_TRUE:bool=$TRUTHY SHOULD_BE_FALSE:bool=$FALSY \
+#              EMPTY_BOOL:bool=$EMPTY ALSO_FALSY:bool=$YOUR_FACE
+#Elements.ps1_color: 11
+
+From: alpine
+
+%post
+ apk add fortune sl
+ mkdir /data
