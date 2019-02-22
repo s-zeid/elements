@@ -11,7 +11,7 @@ Bootstrap: docker
 #              HOST_CONF_FILE=$HOST/.config.yml TZ=$TZ \
 #              SHOULD_BE_TRUE:bool=$TRUTHY SHOULD_BE_FALSE:bool=$FALSY \
 #              EMPTY_BOOL:bool=$EMPTY ALSO_FALSY:bool=$YOUR_FACE
-#Elements.ps1_color: 11
+#Elements.ps1-color: 11
 
 From: alpine
 

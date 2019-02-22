@@ -128,7 +128,7 @@ class Element:  #{{{1
   "args": "",
   "bind": "",
   "env": "",
-  "ps1_color": 27,
+  "ps1-color": 27,
   "resolv": True,
   "terminal": True
  }
@@ -365,7 +365,7 @@ class Element:  #{{{1
   blocks: List[str] = []
   
   blocks += [
-   "__CONFIG_PS1_COLOR=%d" % int(self.config["ps1_color"]),
+   "__CONFIG_PS1_COLOR=%d" % int(self.config["ps1-color"]),
    "__CONFIG_RESOLV=%d" % int(self.config["resolv"]),
    "__CONFIG_TERMINAL=" + str(self.config["terminal"]).lower()
   ]
