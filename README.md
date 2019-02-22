@@ -285,7 +285,7 @@ one of the following groups.  The last digit is an ANSI 4-bit color code
 
   * 0 (special case) - do not color the prompt
   * 1–7 - normal intensity
-  * 11–17 - high intensity
+  * 10–17 - high intensity
   * 20–27 - dim intensity
 
 The color can also be changed at runtime by sourcing /.color with the
