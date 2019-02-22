@@ -288,5 +288,5 @@ one of the following groups.  The last digit is an ANSI 4-bit color code
   * 10–17 - high intensity
   * 20–27 - dim intensity
 
-The color can also be changed at runtime by sourcing /.color with the
+The color can also be changed at runtime by sourcing `/.color` with the
 desired color as an argument.
