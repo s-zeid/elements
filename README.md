@@ -49,20 +49,20 @@ filesystem).
 Contents
 --------
 
-* Requirements
-* Usage
-* Elements extensions
-    * args
-        * Argument types
-            * bind
-            * env
-            * name
-    * bind
-    * env
-    * Miscellaneous options
-        * resolv
-        * terminal
-        * ps1-color
+* [Requirements](#requirements)
+* [Usage](#usage)
+* [Elements extensions](#elements-extensions)
+    * [args](#args)
+        * [Argument types](#argument-types)
+            * [bind](#bind)
+            * [env](#env)
+            * [name](#name)
+    * [bind](#bind-1)
+    * [env](#env-1)
+    * [Miscellaneous options](#miscellaneous-options)
+        * [resolv](#resolv)
+        * [terminal](#terminal)
+        * [ps1-color](#ps1-color)
 
 
 Requirements
@@ -97,8 +97,8 @@ Usage
 -----
 
 Create a [Singularity Definition File][sdf] for your container.  You may
-use Elements extensions as described below.  The recommended file extension
-for definition files is `.def`.
+use [Elements extensions as described below](#elements-extensions).  The
+recommended file extension for definition files is `.def`.
 
 Most Singularity sections are supported, with these exceptions:
 
@@ -152,7 +152,8 @@ Example:
 
 `args` allows you to control if and how parameters are passed as
 arguments to the container's AppImage.  Short-form flags and positional
-arguments are supported.  Argument types are documented below.
+arguments are supported.  [Argument types are documented
+below.](#argument-types)
 
 For positional arguments, the name must be two or more characters long
 and be a valid shell variable name.  For flag arguments, the name is a
@@ -215,18 +216,19 @@ write-access flags, or making files from one user-provided bind mount
 available in another, as shown in the above example.  You should not
 bind paths that were not explicitly given to you by a user.
 
-As described in the `args` section, the names of arguments are available
-as variables for use in the `src` side of a bind mount here.  The
-variable must be at the start of the path, and only one variable
+As described in [the `args` section](#args), the names of arguments are
+available as variables for use in the `src` side of a bind mount here.
+The variable must be at the start of the path, and only one variable
 can be used per source path.  (Technically, variables can also be used
 on the destination side with the same restrictions, but this is not
 likely to be useful.)
 
-Environment variables defined as arguments or in the `env` extension
-are also available as variables to bind mounts that are directly defined
-here.  These variables are subject to the usual restrictions.
+Environment variables defined as arguments or in [the `env`
+extension](#env-1) are also available as variables to bind mounts that
+are directly defined here.  These variables are subject to the usual
+restrictions.
 
-The flags are the same as for `bind` argument definitions.
+The flags are the same as for [`bind` argument definitions](#bind).
 
 
 ### env
@@ -239,19 +241,19 @@ Example:
     #              DOCROOT=$docroot DEBUG:bool=$APP_DEBUG CONSTANT=42
 
 `env` allows you to pass environment variables from the host or argument
-definitions, or constant values, to the container.  As with `env` argument
-definitions, integer and boolean values are validated before starting the
-container, and the list of supported types is the same.
+definitions, or constant values, to the container.  As with [`env` argument
+definitions](#env), integer and boolean values are validated before starting
+the container, and the list of supported types is the same.
 
-As described in the `args` section, the names of arguments are available
-as variables for use in the `value` side of an environment variable here.
-The variable must be at the start of the value, and only one variable
-can be used per value.
+As described in [the `args` section](#args), the names of arguments are
+available as variables for use in the `value` side of an environment
+variable here.  The variable must be at the start of the value, and only
+one variable can be used per value.
 
 Environment variables defined here are also available as variables to
-bind mounts that are defined directly in the `bind` extension (but not
-those defined as arguments).  These variables are subject to the usual
-restrictions.
+bind mounts that are defined directly in [the `bind` extension](#bind-1)
+(but not those defined as arguments).  These variables are subject to the
+usual restrictions.
 
 
 ### Miscellaneous options
