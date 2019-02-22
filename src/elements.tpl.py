@@ -468,10 +468,10 @@ class Item:  #{{{1
   VAR_NAME_RE = r"(%s|%s|\{%s\})" % (NUM_RE, ANUM_RE, ANUM_RE)
   m = re.match(r"^(?P<var>((\$%s)?))(?P<rest>.*)$" % VAR_NAME_RE,
                s, re.DOTALL)
-  var = m.group("var")
+  var = m.group("var") if m else ""
   if var:
    var = '"%s"' % var
-  rest = m.group("rest")
+  rest = m.group("rest") if m else ""
   if rest:
    rest = "'%s'" % rest.replace("'", "'\\''")
   return var + rest
