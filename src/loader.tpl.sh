@@ -214,6 +214,10 @@ fi
 
 _jq '.mounts |= . + ['"$basic_mounts"']'
 
+if ! [ -t 0 ]; then
+ __CONFIG_TERMINAL=false
+fi
+
 _jq \
  --arg cmd "/.elements-entry" \
  --argjson terminal $__CONFIG_TERMINAL \

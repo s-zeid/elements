@@ -295,6 +295,9 @@ container.  Defaults to true.
 
 (bool) Whether to attach a terminal to the process.  Defaults to true.
 
+If standard input is not a terminal, then no terminal will be attached
+regardless of this setting.
+
 
 #### ps1-color
 
