@@ -102,13 +102,14 @@ if [ $r -ne 0 ]; then
 fi
 
 cleanup() {
+ rm -f "$BUNDLE/appdir"
  rm -rf "$BUNDLE"
 }
 
 trap 'cleanup' INT TERM 0
 
 runc spec -b "$BUNDLE" --rootless
-printf '%s\n' "$APPDIR" > "$BUNDLE/appdir"
+ln -s "$APPDIR" "$BUNDLE/appdir"
 
 
 # prepare bootstrap environment  #{{{2
