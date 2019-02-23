@@ -185,7 +185,12 @@ ELEMENTS_ID="$ELEMENTS_NAME.$ELEMENTS_INSTANCE"
 _jq \
  --arg env_instance "ELEMENTS_INSTANCE=$ELEMENTS_INSTANCE" \
  --arg env_id "ELEMENTS_ID=$ELEMENTS_ID" \
- '.process.env |= . + [$env_instance, $env_id]'
+ --arg env_term "TERM=${TERM:-xterm}" \
+ '.process.env |= (. | map(select(.|startswith("TERM=")|not))) + [
+  $env_instance,
+  $env_id,
+  $env_term
+ ]'
 
 printf '%s\n' "$ELEMENTS_NAME" > "$BUNDLE/name"
 printf '%s\n' "$ELEMENTS_INSTANCE" > "$BUNDLE/instance"
