@@ -128,6 +128,7 @@ class Element:  #{{{1
   "args": "",
   "bind": "",
   "env": "",
+  "name": "elements",
   "ps1-color": 27,
   "resolv": True,
   "terminal": True
@@ -135,11 +136,19 @@ class Element:  #{{{1
  
  SPECIAL_ENV = [
   # here, a leading ^ means before user variables and a leading $ means after
-  "$ELEMENTS_ARGV0=$ARGV0",
+  
+  # Constants
   "$ELEMENTS_MAGIC=Elements",
-  "$ELEMENTS_PS1_COLOR=$__CONFIG_PS1_COLOR",
   "$ELEMENTS_VERSION=" + __version__,
-  "$ELEMENTS_INSTANCE=$__CONTAINER_INSTANCE"
+  
+  # Container config values
+  "$ELEMENTS_NAME=$__CONFIG_NAME",
+  "$ELEMENTS_PS1_COLOR=$__CONFIG_PS1_COLOR",
+  
+  # Runtime values
+  # "^ELEMENTS_INSTANCE=%",  # defined in loader and overwritten by `instance` type args
+  "$ELEMENTS_ARGV0=$ARGV0",
+  #"$ELEMENTS_ID=$ELEMENTS_NAME.$ELEMENTS_INSTANCE"  # defined in loader
  ]
  
  def __init__(self, def_) -> None:  #{{{2
@@ -365,6 +374,7 @@ class Element:  #{{{1
   blocks: List[str] = []
   
   blocks += [
+   "__CONFIG_NAME=" + str(self.config["name"] or self.CONFIG_DEFAULTS["name"]),
    "__CONFIG_PS1_COLOR=%d" % int(self.config["ps1-color"]),
    "__CONFIG_RESOLV=%d" % int(self.config["resolv"]),
    "__CONFIG_TERMINAL=" + str(self.config["terminal"]).lower()
@@ -522,14 +532,18 @@ class Arg(Item):  #{{{1
   if self.kind not in self.KINDS:
    raise ElementError("argument kind must be one of %s:" % ",".join(self.KINDS), spec)
   
+  env_export = True
+  
   if self.kind == "instance":
    self.kind = "env"
-   rhs = "__CONTAINER_INSTANCE=" + rhs
+   env_export = False
+   rhs = "ELEMENTS_INSTANCE=" + rhs
   
   if self.kind == "bind":
    self.value = Bind(self.el, spec=rhs, _from=lhs + ">", _src="${%s}" % self.sh_var)
   elif self.kind == "env":
-   self.value = Env(self.el, spec=rhs, _from=lhs + ">", _value="${%s}" % self.sh_var)
+   self.value = Env(self.el, spec=rhs, _from=lhs + ">", _value="${%s}" % self.sh_var,
+                    _export=env_export)
    if self.value.type_ == "bool":
     self.is_bool = True
     self.value._from = ""
@@ -558,14 +572,16 @@ class Env(Item):  #{{{1
  value: str
  
  _from: str = ""
+ _export: bool = True
  
  TYPES = ["str", "int", "bool"]
  
  def __init__(self, el: Element, spec: str,  #{{{2
-              _from: str = "", _value: str = None) -> None:
+              _from: str = "", _value: str = None, _export: bool = True) -> None:
   self.el = el
   self.spec = spec
   self._from = _from
+  self._export = _export
   
   lhs, self.value = (spec if "=" in spec else spec + "=").split("=", 1)
   if ":" in lhs:
@@ -593,7 +609,7 @@ class Env(Item):  #{{{1
  __compile_env_value=%s
  %s
  eval "$__compile_env_name=\"\$__compile_env_value\""
- _jq --arg item "$__compile_env_name=$__compile_env_value" '.process.env |= . + [$item]'
+%s
 """
   
   if not self._from:
@@ -624,13 +640,20 @@ class Env(Item):  #{{{1
  fi
  """ % (truthy, falsy, bools)
   else:
-   typecheck = " "
+   typecheck = ""
   
   value = self.value
   
+  if self._export:
+   export = """
+ _jq --arg item "$__compile_env_name=$__compile_env_value" '.process.env |= . + [$item]'
+""".lstrip("\n")
+  else:
+   export = ""
+  
   params = [compile_what]
   params += [self._esc_var_str(i) for i in (self.name, value)]
-  params += [typecheck]
+  params += [typecheck, export]
   return TPL % tuple(params)
 
 
@@ -811,7 +834,7 @@ export PS1
 PS1_ENV_SCRIPT: bytes = br"""
 #!/bin/sh
 
-PS1='$HOSTNAME:$ELEMENTS_INSTANCE:$(pwd=$(pwd); [ x"$pwd" = x"$HOME" ] && printf '%s~' '' || (printf '%s' "$pwd" | sed -e "s,/$,,"; echo /)) '
+PS1='$HOSTNAME:$ELEMENTS_ID:$(pwd=$(pwd); [ x"$pwd" = x"$HOME" ] && printf '%s~' '' || (printf '%s' "$pwd" | sed -e "s,/$,,"; echo /)) '
 export PS1
 
 . /.color "$@"

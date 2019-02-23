@@ -46,9 +46,9 @@ ${TEST_ELEMENT}/element: elements ${TEST_ELEMENT}/element.def
 test: ${TEST_ELEMENT}/element
 	[ x"${debug}" = x"1" ] && export __ELEMENTS_CTR_DEBUG=1 || true; \
 	[ x"${dash}" = x"0" ] && true || export __ELEMENTS_USE_DASH=1; \
-	 name=elements-test.$$(mktemp -u XXXXXX); \
+	 instance=from-make+%; \
 	 \
 	 env HOST_VAR=1234 TRUTHY=yes FALSY=0 EMPTY= YOUR_FACE=no \
 	  "./$<" \
 	   -v "${TEST_ELEMENT}/docroot" -H spam 2629 \
-	   -d "${TEST_ELEMENT}/data" -n "$$name"
+	   -d "${TEST_ELEMENT}/data" -n "$$instance"

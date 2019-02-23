@@ -11,13 +11,20 @@ if [ x"$__ELEMENTS_CTR_DEBUG" = x"1" ]; then
  set -x
 fi
 
+
 if [ x"$APPDIR" = x"" ]; then
  echo "AppRun: error: could not find mount point" >&2
  exit 127
 fi
 
+if [ x"$ARGV0" = x"" ]; then
+ ARGV0=element
+fi
 
-__CONTAINER_INSTANCE=
+
+random_12() {
+ printf '%s\n' "$(mktemp -u XXXXXX)$(mktemp -u XXXXXX)"
+}
 
 
 # argument parsing  #{{{2
@@ -87,11 +94,6 @@ ___config_binds___
 
 
 # bundle init  #{{{2
-#export SINGULARITY_ARGV0="${ARGV0:-$0}"
-
-if [ x"$__CONTAINER_INSTANCE" = x"" ]; then
- __CONTAINER_INSTANCE=elements-$(mktemp -u XXXXXX)$(mktemp -u XXXXXX)
-fi
 
 BUNDLE=$(mktemp -d /tmp/.elements-ctr.XXXXXX); r=$?
 if [ $r -ne 0 ]; then
@@ -107,7 +109,6 @@ trap 'cleanup' INT TERM 0
 
 runc spec -b "$BUNDLE" --rootless
 printf '%s\n' "$APPDIR" > "$BUNDLE/appdir"
-printf '%s\n' "$__CONTAINER_INSTANCE" > "$BUNDLE/instance"
 
 
 # prepare bootstrap environment  #{{{2
@@ -146,7 +147,7 @@ escape_args() {
 run_bootstrap() {
  set +e
  escape_args "$@" | runc run --no-pivot -b "$BUNDLE" \
-  "$__CONTAINER_INSTANCE.$(mktemp -u bootstrap.XXXXXX)"
+  "__elements-bootstrap.$__CONFIG_NAME.$(random_12)"
  local r=$?
  set -e
  return $r
@@ -175,6 +176,20 @@ config_args "$@"
 config_env
 config_binds
 
+ELEMENTS_INSTANCE=$(printf '%s' "${ELEMENTS_INSTANCE:-%}" |
+ awk -v random_12="$(random_12)" \
+ '{ gsub(/%/, random_12); print }')
+
+ELEMENTS_ID="$ELEMENTS_NAME.$ELEMENTS_INSTANCE"
+_jq \
+ --arg env_instance "ELEMENTS_INSTANCE=$ELEMENTS_INSTANCE" \
+ --arg env_id "ELEMENTS_ID=$ELEMENTS_ID" \
+ '.process.env |= . + [$env_instance, $env_id]'
+
+printf '%s\n' "$ELEMENTS_NAME" > "$BUNDLE/name"
+printf '%s\n' "$ELEMENTS_INSTANCE" > "$BUNDLE/instance"
+printf '%s\n' "$ELEMENTS_ID" > "$BUNDLE/id"
+
 basic_mounts='{
  "destination": "/tmp",
  "type": "tmpfs",
@@ -196,10 +211,15 @@ _jq '.mounts |= . + ['"$basic_mounts"']'
 _jq \
  --arg cmd "/.elements-entry" \
  --argjson terminal $__CONFIG_TERMINAL \
- --arg hostname "$(hostname 2>/dev/null | echo "${HOSTNAME:-Elements}")" \
- '.process.args[0]=$cmd | .process.terminal=$terminal | .hostname=$hostname'
-
-_jq --arg rootfs "$APPDIR/rootfs" '.root.path=$rootfs | .root.readonly=false'
+ --arg hostname "$(hostname 2>/dev/null || echo "${HOSTNAME:-Elements}")" \
+ --arg rootfs "$APPDIR/rootfs" \
+ '
+  .process.args[0]=$cmd |
+  .process.terminal=$terminal |
+  .hostname=$hostname |
+  .root.path=$rootfs |
+  .root.readonly=false
+ '
 
 
 # cleanup bootstrap environment  #{{{2
@@ -209,7 +229,7 @@ rm -rf "$BUNDLE/rootfs"
 # run container  #{{{2
 
 mv "$BUNDLE/final.json" "$BUNDLE/config.json"
-runc run -b "$BUNDLE" "$__CONTAINER_INSTANCE"
+runc run -b "$BUNDLE" "$ELEMENTS_ID"
 r=$?
 
 

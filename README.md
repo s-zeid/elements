@@ -60,6 +60,7 @@ Contents
     * [bind](#bind-1)
     * [env](#env-1)
     * [Miscellaneous options](#miscellaneous-options)
+        * [name](#name)
         * [resolv](#resolv)
         * [terminal](#terminal)
         * [ps1-color](#ps1-color)
@@ -148,7 +149,7 @@ sign.
 Example:
 
     #Elements.args: docroot:bind>/srv -a:bind>/app:ro \
-    #               -H:env>HOST -p:env>PORT:int -i:id
+    #               -H:env>HOST -p:env>PORT:int -i:instance
 
 `args` allows you to control if and how parameters are passed as
 arguments to the container's AppImage.  Short-form flags and positional
@@ -172,7 +173,7 @@ one variable can be used at the start of a parameter.
 
 ##### bind
 
-    `{name}:bind>{dest}[:{flags}]`  
+    {name}:bind>{dest}[:{flags}]
 
 Binds a path on the host (the user-supplied value) to the `dest` path
 inside the container.  Flags are comma-separated.  Currently, the only
@@ -181,7 +182,7 @@ two flags are `ro` (read-only) and `rw` (read-write, the default).
 
 ##### env
 
-    `{name}:env>{dest}[:{type}]`  
+    {name}:env>{dest}[:{type}]
 
 Defines the `dest` environment variable inside the container.  Valid
 types are `str` (the default), `int`, and `bool` (valid values are
@@ -192,13 +193,19 @@ execution will fail before the container is started.
 
 ##### instance
 
-    `{name}:instance`  
+    {name}:instance
 
-Defines the container's unique instance ID which is passed to runc
-at runtime.  If the user omits the instance ID argument, or if you
-don't define one, then a randomly-generated name of the format
-`elements-XXXXXXXXXXXX` will be used, where the string of X's is a
-random alphanumeric string.
+Defines the container's unique instance ID which is joined with [the
+container's name](#name) by a dot to form the runc container ID.  If
+the instance ID contains a `%` character, then that character will be
+replaced with 12 random alphanumeric characters.  If the user omits
+this argument, or if you don't define it, then the instance ID
+defaults to `%` (i.e. 12 random alphanumeric characters).
+
+Valid characters are 0-9, A-Z, a-z, `_`, `-`, `+`, `.`, and `%`.
+Except for `%`, this is enforced by runc.
+
+The runc container ID will be of the format \`[{name}](#name).{instance}\`.
 
 
 ### bind
@@ -264,6 +271,18 @@ usual restrictions.
 A few other options can be set using Elements extensions.  Integer and
 boolean values are validated at compile time using the same rules as
 for integer and boolean argument values at run time.
+
+
+#### name
+
+(str) A non-unique name for the container which is joined with [the
+instance ID](#instance) by a dot to create the runc container ID.
+Defaults to `elements`.
+
+Valid characters are 0-9, A-Z, a-z, `_`, `-`, `+`, and `.`.  This is
+enforced by runc.
+
+The runc container ID will be of the format \`{name}.[{instance}](#instance)\`.
 
 
 #### resolv

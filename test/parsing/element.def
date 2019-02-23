@@ -1,5 +1,6 @@
+#Elements.name: test-parsing
 #Elements.args: docroot:bind>/srv:ro port:env>PORT:int -H:env>HOST -v:env>VERBOSE:bool \
-#               -d:bind>/data -n:id
+#               -d:bind>/data -n:instance
 
 # This is a normal comment.
 
