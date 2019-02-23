@@ -198,6 +198,17 @@ class Element:  #{{{1
     f.write(ELEMENTS_ENTRY)
    _chmod_x(entry)
    
+   # /exec and /sh  #{{{3
+   exec_ = os.path.join(element_root, "exec")
+   with open(exec_, "wb") as f:
+    f.write(b"#!/bin/sh\n\nexec /.singularity.d/actions/exec \"$@\"\n")
+   _chmod_x(exec_)
+   
+   sh = os.path.join(element_root, "sh")
+   with open(sh, "wb") as f:
+    f.write(b"#!/bin/sh\n\n/exec /bin/sh \"$@\"\n")
+   _chmod_x(sh)
+   
    # PS1 scripts  {{{3
    env_base = os.path.join(element_root, ".singularity.d", "env", "99-base.sh")
    with open(env_base, "rb") as f:
@@ -799,9 +810,7 @@ From: alpine
 
 
 # LICENSE  #{{{1
-LICENSE: bytes = br"""
-___LICENSE___
-""".lstrip()
+LICENSE: bytes = br"""___LICENSE___"""
 
 
 # PS1_SCRIPT  #{{{1
@@ -817,7 +826,7 @@ PS1=$(__ps1_color() {
  if [ x"$TERM" != x"" ]; then
   C=${color:-${ELEMENTS_PS1_COLOR:-17}}  # n/10 = intensity; n%10 = color
   if [ x"$C" != x"0" ]; then
-   I=$((C/10)); I=${I%.*$}; C=$((C%10))
+   I=$((C / 10)); I=${I%.*$}; C=$((C % 10))
    printf '\x1b[%s' "${I};3${C}m$plain" '0m'
    return
   fi
@@ -827,7 +836,7 @@ PS1=$(__ps1_color() {
 }; __ps1_color "$1")
 
 export PS1
-"""
+""".lstrip()
 
 
 # PS1_ENV_SCRIPT  #{{{1
@@ -837,7 +846,7 @@ PS1_ENV_SCRIPT: bytes = br"""
 PS1='$HOSTNAME:$ELEMENTS_ID:$(pwd=$(pwd); [ x"$pwd" = x"$HOME" ] && printf '%s~' '' || (printf '%s' "$pwd" | sed -e "s,/$,,"; echo /)) '
 export PS1
 
-. /.color "$@"
+. /.color "$ELEMENTS_PS1_COLOR"
 """.lstrip()
 
 
