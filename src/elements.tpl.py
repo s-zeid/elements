@@ -139,7 +139,7 @@ class Element:  #{{{1
   "$ELEMENTS_MAGIC=Elements",
   "$ELEMENTS_PS1_COLOR=$__CONFIG_PS1_COLOR",
   "$ELEMENTS_VERSION=" + __version__,
-  "$ELEMENTS_NAME=$__CONTAINER_NAME"
+  "$ELEMENTS_INSTANCE=$__CONTAINER_INSTANCE"
  ]
  
  def __init__(self, def_) -> None:  #{{{2
@@ -479,7 +479,7 @@ class Item:  #{{{1
 
 class Arg(Item):  #{{{1
  #Elements.args: 1:bind>/srv:ro 2:env>PORT:int -H:env>HOST -v:env>VERBOSE:bool \
- #               -d:bind>/data -n:name
+ #               -d:bind>/data -n:instance
  key: str
  sh_var: str
  kind: str
@@ -490,7 +490,7 @@ class Arg(Item):  #{{{1
  
  is_bool: bool = False
  
- KINDS = ["env", "bind", "name"]
+ KINDS = ["env", "bind", "instance"]
  
  def __init__(self, el: Element, spec: str) -> None:  #{{{2
   self.el = el
@@ -522,9 +522,9 @@ class Arg(Item):  #{{{1
   if self.kind not in self.KINDS:
    raise ElementError("argument kind must be one of %s:" % ",".join(self.KINDS), spec)
   
-  if self.kind == "name":
+  if self.kind == "instance":
    self.kind = "env"
-   rhs = "__CONTAINER_NAME=" + rhs
+   rhs = "__CONTAINER_INSTANCE=" + rhs
   
   if self.kind == "bind":
    self.value = Bind(self.el, spec=rhs, _from=lhs + ">", _src="${%s}" % self.sh_var)
@@ -811,7 +811,7 @@ export PS1
 PS1_ENV_SCRIPT: bytes = br"""
 #!/bin/sh
 
-PS1='$HOSTNAME:$ELEMENTS_NAME:$(pwd=$(pwd); [ x"$pwd" = x"$HOME" ] && printf '%s~' '' || (printf '%s' "$pwd" | sed -e "s,/$,,"; echo /)) '
+PS1='$HOSTNAME:$ELEMENTS_INSTANCE:$(pwd=$(pwd); [ x"$pwd" = x"$HOME" ] && printf '%s~' '' || (printf '%s' "$pwd" | sed -e "s,/$,,"; echo /)) '
 export PS1
 
 . /.color "$@"

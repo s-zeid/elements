@@ -56,7 +56,7 @@ Contents
         * [Argument types](#argument-types)
             * [bind](#bind)
             * [env](#env)
-            * [name](#name)
+            * [instance](#instance)
     * [bind](#bind-1)
     * [env](#env-1)
     * [Miscellaneous options](#miscellaneous-options)
@@ -148,7 +148,7 @@ sign.
 Example:
 
     #Elements.args: docroot:bind>/srv -a:bind>/app:ro \
-    #               -H:env>HOST -p:env>PORT:int -n:name
+    #               -H:env>HOST -p:env>PORT:int -i:id
 
 `args` allows you to control if and how parameters are passed as
 arguments to the container's AppImage.  Short-form flags and positional
@@ -190,14 +190,15 @@ the user supplies an invalid value for an integer or boolean variable,
 execution will fail before the container is started.
 
 
-##### name
+##### instance
 
-    `{name}:name`  
+    `{name}:instance`  
 
-Defines the container's unique name which is passed to runc at runtime.
-If the user omits the name argument, or if you don't define one,
-a randomly-generated name of the format `elements-XXXXXXXXXXXX`
-will be used, where the string of X's is a random alphanumeric string.
+Defines the container's unique instance ID which is passed to runc
+at runtime.  If the user omits the instance ID argument, or if you
+don't define one, then a randomly-generated name of the format
+`elements-XXXXXXXXXXXX` will be used, where the string of X's is a
+random alphanumeric string.
 
 
 ### bind

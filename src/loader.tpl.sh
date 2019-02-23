@@ -17,7 +17,7 @@ if [ x"$APPDIR" = x"" ]; then
 fi
 
 
-__CONTAINER_NAME=
+__CONTAINER_INSTANCE=
 
 
 # argument parsing  #{{{2
@@ -89,8 +89,8 @@ ___config_binds___
 # bundle init  #{{{2
 #export SINGULARITY_ARGV0="${ARGV0:-$0}"
 
-if [ x"$__CONTAINER_NAME" = x"" ]; then
- __CONTAINER_NAME=elements-$(mktemp -u XXXXXX)$(mktemp -u XXXXXX)
+if [ x"$__CONTAINER_INSTANCE" = x"" ]; then
+ __CONTAINER_INSTANCE=elements-$(mktemp -u XXXXXX)$(mktemp -u XXXXXX)
 fi
 
 BUNDLE=$(mktemp -d /tmp/.elements-ctr.XXXXXX); r=$?
@@ -107,7 +107,7 @@ trap 'cleanup' INT TERM 0
 
 runc spec -b "$BUNDLE" --rootless
 printf '%s\n' "$APPDIR" > "$BUNDLE/appdir"
-printf '%s\n' "$__CONTAINER_NAME" > "$BUNDLE/name"
+printf '%s\n' "$__CONTAINER_INSTANCE" > "$BUNDLE/instance"
 
 
 # prepare bootstrap environment  #{{{2
@@ -146,7 +146,7 @@ escape_args() {
 run_bootstrap() {
  set +e
  escape_args "$@" | runc run --no-pivot -b "$BUNDLE" \
-  "$__CONTAINER_NAME.$(mktemp -u bootstrap.XXXXXX)"
+  "$__CONTAINER_INSTANCE.$(mktemp -u bootstrap.XXXXXX)"
  local r=$?
  set -e
  return $r
@@ -209,7 +209,7 @@ rm -rf "$BUNDLE/rootfs"
 # run container  #{{{2
 
 mv "$BUNDLE/final.json" "$BUNDLE/config.json"
-runc run -b "$BUNDLE" "$__CONTAINER_NAME"
+runc run -b "$BUNDLE" "$__CONTAINER_INSTANCE"
 r=$?
 
 

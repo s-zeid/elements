@@ -1,5 +1,5 @@
 #Elements.args: docroot:bind>/srv:ro port:env>PORT:int -H:env>HOST -v:env>VERBOSE:bool \
-#               -d:bind>/data -n:name
+#               -d:bind>/data -n:id
 
 # This is a normal comment.
 
