@@ -1,10 +1,19 @@
 all: elements
+.PHONY: version test
+
+define __version :=
+	v=$$(git describe --tags --dirty --always 2>/dev/null || echo 'vUNKNOWN'); \
+	v=$$(printf '%s\n' "$${v#v}" | sed -e \
+         's/-\([0-9]\+\?-g[a-fA-F0-9]\{7\}\)/+\1/; s/-\(g[a-fA-F0-9]\{7\}\|dirty\)/.\1/g');
+endef
+
+version:
+	@$(__version) \
+	 printf '%s\n' "$$v"
 
 elements: src/elements.tpl.py src/loader.tpl.sh
 	mypy "$<"
-	v=$$(git describe --tags --dirty --always 2>/dev/null || echo 'vUNKNOWN'); \
-	v=$$(printf '%s\n' "$${v#v}" | sed -e \
-         's/-\([0-9]\+\?-g[a-fA-F0-9]\{7\}\)/+\1/;s/-\(g[a-fA-F0-9]\{7\}\|dirty\)/.\1/g');\
+	$(__version) \
 	python3 -c \
 	 '1; \
 	  import sys; argv = sys.argv; \
@@ -20,7 +29,7 @@ elements: src/elements.tpl.py src/loader.tpl.sh
 	 "$<" \
 	 "src/loader.tpl.sh" \
 	 "LICENSE.txt" \
-	 "$$v" > "$@";\
+	 "$$v" > "$@"; \
 	 r=$$?; [ $$r -ne 0 ] && rm -f "$@" || true
 	chmod +x "$@"
 
@@ -34,7 +43,6 @@ ${TEST_ELEMENT}/element: elements ${TEST_ELEMENT}/element.def
 	sudo "./$<" "${TEST_ELEMENT}/element.def" "$@"
 
 
-.PHONY: test
 test: ${TEST_ELEMENT}/element
 	[ x"${debug}" = x"1" ] && export __ELEMENTS_CTR_DEBUG=1 || true; \
 	[ x"${dash}" = x"0" ] && true || export __ELEMENTS_USE_DASH=1; \
