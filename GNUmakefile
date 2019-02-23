@@ -2,6 +2,9 @@ all: elements
 
 elements: src/elements.tpl.py src/loader.tpl.sh
 	mypy "$<"
+	v=$$(git describe --tags --dirty --always 2>/dev/null || echo 'vUNKNOWN'); \
+	v=$$(printf '%s\n' "$${v#v}" | sed -e \
+         's/-\([0-9]\+\?-g[a-fA-F0-9]\{7\}\)/+\1/;s/-\(g[a-fA-F0-9]\{7\}\|dirty\)/.\1/g');\
 	python3 -c \
 	 '1; \
 	  import sys; argv = sys.argv; \
@@ -17,7 +20,7 @@ elements: src/elements.tpl.py src/loader.tpl.sh
 	 "$<" \
 	 "src/loader.tpl.sh" \
 	 "LICENSE.txt" \
-	 "$$(git describe --tags --dirty --always 2>/dev/null || echo 'vUNKNOWN')" > "$@";\
+	 "$$v" > "$@";\
 	 r=$$?; [ $$r -ne 0 ] && rm -f "$@" || true
 	chmod +x "$@"
 
