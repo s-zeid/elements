@@ -27,6 +27,9 @@ random_12() {
 }
 
 
+ELEMENTS_MAGIC=Elements
+
+
 # argument parsing  #{{{2
 
 __parse_args() {
@@ -101,9 +104,12 @@ if [ $r -ne 0 ]; then
  exit 127
 fi
 
+printf '%s\n' "$ELEMENTS_MAGIC" > "$BUNDLE/magic"
+
 cleanup() {
- rm -f "$BUNDLE/appdir"
- rm -rf "$BUNDLE"
+ if [ -d "$BUNDLE" ]; then
+  "$APPDIR/elements-cleanup.sh" "$BUNDLE"
+ fi
 }
 
 trap 'cleanup' INT TERM 0
@@ -183,10 +189,12 @@ ELEMENTS_INSTANCE=$(printf '%s' "${ELEMENTS_INSTANCE:-%}" |
 
 ELEMENTS_ID="$ELEMENTS_NAME.$ELEMENTS_INSTANCE"
 _jq \
+ --arg env_magic "ELEMENTS_MAGIC=$ELEMENTS_MAGIC" \
  --arg env_instance "ELEMENTS_INSTANCE=$ELEMENTS_INSTANCE" \
  --arg env_id "ELEMENTS_ID=$ELEMENTS_ID" \
  --arg env_term "TERM=${TERM:-xterm}" \
  '.process.env |= (. | map(select(.|startswith("TERM=")|not))) + [
+  $env_magic,
   $env_instance,
   $env_id,
   $env_term
@@ -223,12 +231,18 @@ _jq \
  --argjson terminal $__CONFIG_TERMINAL \
  --arg hostname "$(hostname 2>/dev/null || echo "${HOSTNAME:-Elements}")" \
  --arg rootfs "$APPDIR/rootfs" \
+ --arg cleanup "$APPDIR/elements-cleanup.sh" \
+ --arg bundle "$BUNDLE" \
  '
   .process.args[0]=$cmd |
   .process.terminal=$terminal |
   .hostname=$hostname |
   .root.path=$rootfs |
-  .root.readonly=false
+  .root.readonly=false |
+  (.hooks.poststop |= . + [{
+   "path": $cleanup,
+   "args": ["elements-cleanup.sh", $bundle]
+  }])
  '
 
 
@@ -239,11 +253,4 @@ rm -rf "$BUNDLE/rootfs"
 # run container  #{{{2
 
 mv "$BUNDLE/final.json" "$BUNDLE/config.json"
-runc run -b "$BUNDLE" "$ELEMENTS_ID"
-r=$?
-
-
-# cleanup container and exit  #{{{2
-
-cleanup
-exit $r
+exec runc run -b "$BUNDLE" "$ELEMENTS_ID"

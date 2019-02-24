@@ -144,7 +144,7 @@ class Element:  #{{{1
   # here, a leading ^ means before user variables and a leading $ means after
   
   # Constants
-  "$ELEMENTS_MAGIC=Elements",
+  #"$ELEMENTS_MAGIC=Elements",  # defined in loader
   "$ELEMENTS_VERSION=" + __version__,
   
   # Container config values
@@ -254,7 +254,12 @@ class Element:  #{{{1
     f.write(APPRUN.replace(b"___loader___", os.path.basename(loader).encode("utf8")))
    _chmod_x(apprun)
    
-   # Elements license and version files  #{{{3
+   # cleanup, license, and version  #{{{3
+   cleanup = os.path.join(tmp, "elements-cleanup.sh")
+   with open(cleanup, "wb") as f:
+    f.write(CLEANUP)
+   _chmod_x(cleanup)
+   
    license = os.path.join(tmp, "LICENSE.Elements.txt")
    with open(license, "wb") as f:
     f.write(LICENSE)
@@ -785,26 +790,28 @@ LOADER_TPL: bytes = br"""___LOADER_TPL___"""
 APPRUN: bytes = br"""
 #!/bin/sh
 
-__debug() {
- if [ x"$__ELEMENTS_CTR_DEBUG" = x"1" ]; then
-  printf '\n%s ' "debug time ;)" >&2; read
- fi
-}
-
 if [ x"$APPDIR" = x"" ]; then
  echo "AppRun: error: could not find mount point" >&2
  exit 127
 fi
 
-__debug
 
-if [ x"$__ELEMENTS_USE_DASH" = x"1" ]; then
- dash "$APPDIR/___loader___" "$@"
+start() {
+ if [ x"$__ELEMENTS_USE_DASH" = x"1" ]; then
+  exec dash "$APPDIR/___loader___" "$@"
+ else
+  exec sh "$APPDIR/___loader___" "$@"
+ fi
+}
+
+
+if [ x"$__ELEMENTS_CTR_DEBUG" = x"1" ]; then
+ printf '\n%s ' "debug time ;)" >&2; read
+ start "$@"
+ printf '\n%s ' "debug time ;)" >&2; read
 else
- sh "$APPDIR/___loader___" "$@"
+ start "$@"
 fi
-
-__debug
 """.lstrip()
 
 
@@ -828,6 +835,27 @@ From: alpine
 %post
  apk add jq
  rm -f /var/cache/apk/APKINDEX.*
+""".lstrip()
+
+
+# CLEANUP  #{{{1
+CLEANUP: bytes = br"""
+#!/bin/sh
+
+if [ x"$1" = x"" ]; then
+ echo "$0: error: bundle directory not given" >&2
+ exit 2
+fi
+
+bundle=$1
+
+if (! [ -f "$bundle/magic" ]) || [ x"$(cat "$bundle/magic")" != x"Elements" ]; then
+ echo "$0: error: bundle is not an Elements bundle" >&2
+ exit 2
+fi
+
+rm -f "$bundle/appdir"
+rm -rf "$bundle"
 """.lstrip()
 
 
