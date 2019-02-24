@@ -51,6 +51,12 @@ def main(argv):  #{{{1
   if isinstance(options, int):
    return options
   
+  if is_binary_file(options.def_):
+   raise ElementError("`%s` is not a definition file" % options.def_)
+  
+  if os.path.exists(options.output) and not is_binary_file(options.output):
+   raise ElementError("`%s` exists but is a text file" % options.output)
+  
   with open(options.def_, "rb") as def_:
    el = Element(def_.read())
   
@@ -258,7 +264,7 @@ class Element:  #{{{1
     f.write(__version__.encode("utf-8"))
 
    # build AppImage  #{{{3
-   arch = cast(Any, os.uname()).machine.lower().replace("_", "")
+   arch = cast(Any, os.uname()).machine.lower().replace("_", "").replace("-", "")
    if "x8664" in arch or "amd64" in arch:
     arch = "x86_64"
    elif "aarch64" in arch or "arm64" in arch:
@@ -737,6 +743,22 @@ class Bind(Item):  #{{{1
     mode = i
   
   return TPL % tuple([self._esc_var_str(i) for i in (self.src, self.dest, mode)])
+
+
+def is_binary_file(path: str) -> bool:  #{{{1
+ with open(path, "rb") as f:
+  test = f.read(512)
+ 
+ try:
+  test.decode("utf-8")
+ except UnicodeDecodeError:
+  return True
+ 
+ for i in test:
+  if i < 32 and i not in b'\t\n\r\x0b\x0c\x1b':
+   return True
+ 
+ return False
 
 
 def parse_bool(value: Union[str, int, bool],  #{{{1
