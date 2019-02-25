@@ -5,7 +5,7 @@ A tool to generate single-file, runc-based AppImage containers.
 
 Copyright (c) 2019 S. Zeid.  Some rights reserved under the X11 License.
 
-<https://code.s.zeid.me/elements>
+<https://elements.s.zeid.me/>
 
 **WARNING:**  Elements is not ready for production.  It is an experiment
 in the early stages of development.  Although I make a best effort to not
