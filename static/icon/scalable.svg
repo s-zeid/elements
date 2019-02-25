@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.1" width="2048" height="2048" viewBox="0 0 2048 2048" xmlns="http://www.w3.org/2000/svg">
+ <rect width="2048" height="2048" fill="#e8e5df"/>
+ <g fill="#5c5854">
+  <rect x="960" y="256" width="128" height="1536"/>
+  <rect x="512" y="704" width="1024" height="128"/>
+  <rect x="512" y="1216" width="1024" height="128"/>
+ </g>
+ <g fill="#5c5854">
+  <rect x="960" y="256" width="128" height="1536"/>
+  <rect x="512" y="704" width="1024" height="128"/>
+  <rect x="512" y="1216" width="1024" height="128"/>
+ </g>
+ <g fill="#5c5854">
+  <rect x="960" y="256" width="128" height="1536"/>
+  <rect x="512" y="704" width="1024" height="128"/>
+  <rect x="512" y="1216" width="1024" height="128"/>
+ </g>
+ <g fill="#5c5854">
+  <rect x="960" y="256" width="128" height="1536"/>
+  <rect x="512" y="704" width="1024" height="128"/>
+  <rect x="512" y="1216" width="1024" height="128"/>
+ </g>
+ <g fill="#5c5854">
+  <rect x="960" y="256" width="128" height="1536"/>
+  <rect x="512" y="704" width="1024" height="128"/>
+  <rect x="512" y="1216" width="1024" height="128"/>
+ </g>
+ <g fill="#5c5854">
+  <rect x="960" y="256" width="128" height="1536"/>
+  <rect x="512" y="704" width="1024" height="128"/>
+  <rect x="512" y="1216" width="1024" height="128"/>
+ </g>
+ <g fill="#5c5854">
+  <rect x="960" y="256" width="128" height="1536"/>
+  <rect x="512" y="704" width="1024" height="128"/>
+  <rect x="512" y="1216" width="1024" height="128"/>
+ </g>
+ <g fill="#5c5854">
+  <rect x="960" y="256" width="128" height="1536"/>
+  <rect x="512" y="704" width="1024" height="128"/>
+  <rect x="512" y="1216" width="1024" height="128"/>
+ </g>
+</svg>

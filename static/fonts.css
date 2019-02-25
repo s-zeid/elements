@@ -1,0 +1,9 @@
+@import url("https://fonts.s.zeid.me/latin-modern/sans.css");
+@import url("https://fonts.s.zeid.me/latin-modern/mono.css");
+
+html {
+ font-family: "Latin Modern Sans", sans-serif;
+}
+pre, code, kbd, samp, var, tt {
+ font-family: "Latin Modern Mono", monospace;
+}

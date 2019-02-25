@@ -1,0 +1,12 @@
+title: Elements
+nav:
+ ./docs/: Docs
+ https://code.s.zeid.me/elements: Source
+
+theme:
+# Front matter defaults
+defaults:
+ - scope:
+    path: ""
+   values:
+    layout: "default"  # GH Pages already has this default, but not stock Jekyll

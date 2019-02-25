@@ -1,0 +1,112 @@
+html {
+ font-family: sans-serif;
+}
+body {
+ margin: 0;
+}
+body > * {
+ padding: 1em;
+}
+body > header:not(.dark):not(.fixed) {
+ padding-bottom: 0;
+}
+body > header h1 {
+ margin: 0;
+ position: relative; top: -0.05em;
+ display: inline;
+ line-height: 1;
+}
+body > header h1 .icon {
+ height: 0.75em;
+}
+body > header h1 + nav {
+ display: inline;
+ position: relative; top: -0.5em; left: -0.375em;
+}
+body > header h1 + nav a {
+ margin-left: 0.5em;
+}
+body > header h1 + nav a.current {
+ font-weight: bold;
+}
+body > header.fixed {
+ position: fixed; top: 0; right: 0; left: 0;
+}
+body > header.fixed + main {
+ margin-top: 4em;
+}
+body > header:not(.dark).fixed {
+ padding-bottom: 0;
+}
+html:not(.top) body > header:not(.dark).fixed.shadow {
+ box-shadow: currentColor 0 0.25em 3.5em -1.5em;
+}
+@-moz-document url-prefix() {
+ html:not(.top) body > header:not(.dark).fixed.shadow {
+  box-shadow: currentColor 0 0.25em 2em -1.5em;
+ }
+}
+html:not(.top) body > header:not(.dark).fixed:not(.shadow) {
+ box-shadow: var(--bg) 0 0.25em 1em;
+}
+html:not(.top) body > header:not(.dark).fixed:after {
+ content: ""; display: block;
+ width: 100%; height: 1em;
+ border-bottom-width: 1px; border-bottom-style: solid;
+ opacity: .5;
+}
+body > header:not(.dark).fixed + main {
+ padding-top: 0.25em;
+}
+body > footer:not(.dark) {
+ margin: 0 1em; padding: 1em 0;
+ border-top-width: 1px; border-top-style: solid;
+ opacity: .5;
+}
+
+html.top .not-top {
+ display: none;
+}
+
+.icon.dark, .dark .icon:not(.dark) {
+ display: none;
+}
+.dark .icon.dark {
+ display: inline;
+}
+
+body > header.fixed + main [id]:before {
+ content: "";
+ display: block;
+ height: 80px;
+ margin: -80px 0 0 0;
+}
+
+a {
+ text-decoration: none;
+}
+a:hover, a:focus {
+ text-decoration: underline;
+ outline: none;
+}
+body > header h1 a:hover, body > header h1 a:focus {
+ text-decoration: none;
+}
+body > header h1 a:hover span, body > header h1 a:focus span {
+ text-decoration: underline;
+}
+main > :first-child, main > style + *, p:first-child {
+ margin-top: 0;
+}
+p:last-child {
+ margin-bottom: 0;
+}
+hr {
+ position: relative; z-index: -1;
+ border-bottom: none;
+ opacity: .25;
+}
+
+pre.highlight {
+ margin: 0 2em;
+}

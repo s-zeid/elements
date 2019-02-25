@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!-- vim: set sw=1 fdl=1 fdm=marker fmr=[[[,]]]: -->
+{%- assign _parts = page.dir | replace_first: "/", "" | split: "/" %}
+{%- capture root %}{%- for _ in _parts %}/..{% endfor %}{% endcapture %}
+{%- assign root = root | default: "." | replace_first: "/", "" %}
+{%- assign root_ = root | append: "/" %}
+<html class="top" data-root="{{ root }}">
+ <head><!--[[[1-->
+  <meta charset="utf-8" />
+  <title>{{ site.title | strip_html | escape }}{% if page.title %} · {{ page.title | strip_html | escape }}{% endif %}</title>
+  <link rel="shortcut icon" type="image/x-icon" href="{{ root }}/favicon.ico" />
+  <link rel="stylesheet" href="{{ root }}/static/colors.css" />
+  <link rel="stylesheet" href="{{ root }}/static/main.css" />
+  <link rel="stylesheet" href="{{ root }}/static/fonts.css" />
+ </head><!--]]]1-->
+ <body>
+  <header class="fixed shadow">
+   <script>
+    (function() {
+     function onScroll() {
+      if (!window.scrollY)
+       document.documentElement.classList.add("top");
+      else
+       document.documentElement.classList.remove("top");
+     };
+     window.addEventListener("scroll", onScroll);
+     onScroll();
+    })();
+   </script>
+   <h1>
+    <a href="{{ root }}/">
+     <span>{{ site.title | escape }}</span>
+     <img src="{{ root }}/static/icon/inline.svg" alt="" class="icon" />
+     <img src="{{ root }}/static/icon/inline-inverted.svg" alt="" class="icon dark" />
+    </a>
+   </h1>
+{% include nav.html %}  </header>
+  <main>
+{{ content | rstrip }}
+  </main>
+  <footer class="">
+{% include footer.html %}
+  </footer>
+  <script>
+   document.querySelectorAll("a[href^='https:'], a[href^='http:']").forEach(function(i) {
+    if (!i.getAttribute("target"))
+     i.setAttribute("target", "_blank");
+   });
+  </script>
+ </body>
+</html>

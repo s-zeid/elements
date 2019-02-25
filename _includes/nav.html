@@ -1,0 +1,6 @@
+   <nav>
+    {%- assign url = page.url | prepend: "." | split: "" | reverse | join: "" | replace_first: "lmth.xnedi/", "/" | split: "" | reverse | join: "" %}{{url_}}
+   {%- for item in site.nav %}
+    <a href="{{ item[0] | replace_first: "./", root_ | escape }}"{% if item[0] == url %} class="current"{% endif %}>{{ item[1] | escape }}</a>{% endfor %}
+    <a href="#" class="not-top" style="float: right; position: relative; top: -0.5em; padding: 0.5em 1em 1.25em;"><b>↑</b></a>
+   </nav>

@@ -1,0 +1,26 @@
+html, header {
+ --bg: #f0ebee; /*#ebe6e4*/;
+ background: #f0ebee;
+ color: #5c5854;
+}
+.dark {
+ background: #5c5854;
+ color: #e8e5df;
+}
+hr {
+ border-color: #5c5854;
+}
+.dark hr {
+ border-color: #e8e5df;
+}
+body > header:not(.dark).fixed:after,
+body > footer:not(.dark) {
+ border-color: rgba(92, 88, 84, 0.5);
+}
+
+a {
+ color: #50b;
+}
+body > header h1 a {
+ color: inherit;
+}
