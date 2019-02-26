@@ -3,12 +3,15 @@
   #contents {
    display: none;
   }
-  #contents + ul, #contents + ul ul {
-   list-style: none; padding-left: 1em;
-  }
   #contents + ul {
    position: fixed; top: 4em; right: 0; bottom: 0; overflow: auto;
-   width: 15.5em; padding-left: 0.5em;
+   width: 15.5em; overflow: auto;
+   padding-left: 0.5em; margin-top: 1em;
+   list-style: none;
+  }
+  #contents + ul ul {
+   padding-left: 1em;
+   list-style: none;
   }
   main {
    margin-right: 16em;

@@ -29,9 +29,12 @@
    </script>
    <h1>
     <a href="{{ root }}/">
-     <span>{{ site.title | escape }}</span>
-     <img src="{{ root }}/static/icon/inline.svg" alt="" class="icon" />
-     <img src="{{ root }}/static/icon/inline-inverted.svg" alt="" class="icon dark" />
+     <span class="name">{{ site.title | escape }}</span>
+     <span class="icon">
+      <img src="{{ root }}/static/icon/inline.svg" alt="" />
+      <img src="{{ root }}/static/icon/inline-inverted.svg" alt="" class="dark" />
+     </span>
+     <span class="name mobile">{{ site.title | escape }}</span>
     </a>
    </h1>
 {% include nav.html %}  </header>
@@ -39,8 +42,7 @@
 {{ content | rstrip }}
   </main>
   <footer class="">
-{% include footer.html %}
-  </footer>
+{% include footer.html %}  </footer>
   <script>
    document.querySelectorAll("a[href^='https:'], a[href^='http:']").forEach(function(i) {
     if (!i.getAttribute("target"))
