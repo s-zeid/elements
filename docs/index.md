@@ -8,7 +8,6 @@ title: Documentation
 Contents
 --------
 
-* [Requirements](#requirements)
 * [Usage](#usage)
 * [Elements extensions](#elements-extensions)
     * [args](#args)
@@ -23,34 +22,6 @@ Contents
         * [resolv](#resolv)
         * [terminal](#terminal)
         * [ps1-color](#ps1-color)
-
-
-Requirements
-------------
-
-Currently, Linux is the only supported operating system.
-
-
-**For running Elements containers,** you'll need:
-
-* A relatively recent distribution capable of running AppImages
-  (a graphical environment is *not* necessary)
-* runc (must be on the runtime user's $PATH, preferably system-wide)
-
-
-**For building Elements containers,** you'll need **root privileges** and
-the following items on the root user's $PATH:
-
-* Python 3
-* [Singularity](https://www.sylabs.io/singularity/)
-* [appimagetool](https://github.com/AppImage/AppImageKit/releases)
-
-
-**For building Elements itself,** you'll need:
-
-* Git
-* GNU make
-* mypy for Python 3 (must be on the build user's $PATH)
 
 
 Usage

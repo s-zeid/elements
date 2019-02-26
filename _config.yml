@@ -1,5 +1,6 @@
 title: Elements
 nav:
+ ./install/: Install
  ./docs/: Docs
  https://code.s.zeid.me/elements: Source
 

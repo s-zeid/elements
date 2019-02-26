@@ -98,7 +98,7 @@ body > header h1 a:hover span, body > header h1 a:focus span {
 main > :first-child, main > style + *, p:first-child {
  margin-top: 0;
 }
-p:last-child {
+main > p:last-child {
  margin-bottom: 0;
 }
 hr {
