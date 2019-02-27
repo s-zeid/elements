@@ -5,6 +5,13 @@
 
 # script setup  #{{{2
 
+ELEMENTS_MAGIC=Elements
+
+ELEMENTS_ID=
+ELEMENTS_INSTANCE=
+ELEMENTS_NAME=
+
+
 set -e
 
 if [ x"$__ELEMENTS_CTR_DEBUG" = x"1" ]; then
@@ -13,7 +20,7 @@ fi
 
 
 if [ x"$APPDIR" = x"" ]; then
- echo "AppRun: error: could not find mount point" >&2
+ echo "elements: error: could not find mount point" >&2
  exit 127
 fi
 
@@ -22,12 +29,45 @@ if [ x"$ARGV0" = x"" ]; then
 fi
 
 
+STATE_ROOT="/tmp/.elements-ctr-u$(id -u)"
+if [ x"$XDG_RUNTIME_DIR" != x"" ] && [ -d "$XDG_RUNTIME_DIR" ]; then
+ XDG_STATE_ROOT="$XDG_RUNTIME_DIR/elements"
+ if [ -e "$XDG_STATE_ROOT" ]; then
+  if [ -d "$XDG_STATE_ROOT" ] && [ -r "$XDG_STATE_ROOT/.@magic" ] && \
+     [ x"$(cat "$XDG_STATE_ROOT/.@magic" || true)" = x"$ELEMENTS_MAGIC" ]; then
+   STATE_ROOT=$XDG_STATE_ROOT
+  fi
+ else
+  STATE_ROOT=$XDG_STATE_ROOT
+ fi
+fi
+
+mkdir -m 0700 -p "$STATE_ROOT"
+chmod 1700 "$STATE_ROOT"  # prevent auto-pruning per XDG spec
+if ! [ -e "$STATE_ROOT/.@magic" ]; then
+ printf '%s\n' "$ELEMENTS_MAGIC" > "$STATE_ROOT/.@magic"
+ chmod 0600 "$STATE_ROOT/.@magic"
+fi
+
+
+BOOTSTRAP_BUNDLE=
+FINAL_BUNDLE=
+
+cleanup() {
+ if [ x"$BOOTSTRAP_BUNDLE" != x"" ] && [ -d "$BOOTSTRAP_BUNDLE" ]; then
+  rm -rf "$BOOTSTRAP_BUNDLE" || true
+ fi
+ if [ x"$FINAL_BUNDLE" != x"" ] && [ -d "$FINAL_BUNDLE" ]; then
+  "$APPDIR/elements-cleanup.sh" "$FINAL_BUNDLE" || true
+ fi
+}
+
+trap 'cleanup' INT TERM 0
+
+
 random_12() {
  printf '%s\n' "$(mktemp -u XXXXXX)$(mktemp -u XXXXXX)"
 }
-
-
-ELEMENTS_MAGIC=Elements
 
 
 # argument parsing  #{{{2
@@ -98,30 +138,20 @@ ___config_binds___
 
 # bundle init  #{{{2
 
-BUNDLE=$(mktemp -d /tmp/.elements-ctr.XXXXXX); r=$?
+BOOTSTRAP_BUNDLE=$(mktemp -d "$STATE_ROOT/.@bootstrap.XXXXXX"); r=$?
 if [ $r -ne 0 ]; then
- echo "AppRun: error: could not make bundle directory (mktemp error $r)" >&2
+ echo "elements: error: could not make bootstrap directory (mktemp error $r)" >&2
  exit 127
 fi
+chmod 0700 "$BOOTSTRAP_BUNDLE"
 
-printf '%s\n' "$ELEMENTS_MAGIC" > "$BUNDLE/magic"
-
-cleanup() {
- if [ -d "$BUNDLE" ]; then
-  "$APPDIR/elements-cleanup.sh" "$BUNDLE"
- fi
-}
-
-trap 'cleanup' INT TERM 0
-
-runc spec -b "$BUNDLE" --rootless
-ln -s "$APPDIR" "$BUNDLE/appdir"
+runc spec -b "$BOOTSTRAP_BUNDLE" --rootless
 
 
 # prepare bootstrap environment  #{{{2
 
-(cd "$BUNDLE" && tar -xf "$APPDIR/bootstrap.tar")
-rm -f "$BUNDLE/bootstrap.def"
+(cd "$BOOTSTRAP_BUNDLE" && tar -xf "$APPDIR/bootstrap.tar")
+rm -f "$BOOTSTRAP_BUNDLE/bootstrap.def"
 
 # disable terminal and readonly rootfs
 awk '
@@ -139,8 +169,8 @@ awk '
   }
  };
  { print }
-' "$BUNDLE/config.json" > "$BUNDLE/config.tmp"
-mv "$BUNDLE/config.tmp" "$BUNDLE/config.json"
+' "$BOOTSTRAP_BUNDLE/config.json" > "$BOOTSTRAP_BUNDLE/config.tmp"
+mv "$BOOTSTRAP_BUNDLE/config.tmp" "$BOOTSTRAP_BUNDLE/config.json"
 
 escape_args() {
  printf "'"; printf '%s' "$1" | sed -e "s/'/'\\\\''/g"; printf "'"
@@ -153,7 +183,7 @@ escape_args() {
 
 run_bootstrap() {
  set +e
- escape_args "$@" | runc run --no-pivot -b "$BUNDLE" \
+ escape_args "$@" | runc run --no-pivot -b "$BOOTSTRAP_BUNDLE" \
   "__elements-bootstrap.$__CONFIG_NAME.$(random_12)"
  local r=$?
  set -e
@@ -169,25 +199,35 @@ abspath() {
 # configure container  #{{{2
 
 _jq() {
- cp "$BUNDLE/final.json" "$BUNDLE/rootfs/final.json"
+ cp "$BOOTSTRAP_BUNDLE/final.json" "$BOOTSTRAP_BUNDLE/rootfs/final.json"
  set +e
- run_bootstrap jq "$@" "/final.json" > "$BUNDLE/tmp.json"
+ run_bootstrap jq "$@" "/final.json" > "$BOOTSTRAP_BUNDLE/tmp.json"
  set -e
- mv "$BUNDLE/tmp.json" "$BUNDLE/final.json"
+ mv "$BOOTSTRAP_BUNDLE/tmp.json" "$BOOTSTRAP_BUNDLE/final.json"
 }
 
-cp "$BUNDLE/config.json" "$BUNDLE/final.json"
+cp "$BOOTSTRAP_BUNDLE/config.json" "$BOOTSTRAP_BUNDLE/final.json"
 
 config_misc
 config_args "$@"
 config_env
 config_binds
 
-ELEMENTS_INSTANCE=$(printf '%s' "${ELEMENTS_INSTANCE:-%}" |
+if ! (printf '%s\n' "$ELEMENTS_NAME" | grep -q -e '^[0-9a-zA-Z_+.-]\+$'); then
+ echo "elements: error: \`$ELEMENTS_NAME\` is not a valid container app name" >&2
+ exit 2
+fi
+if ! (printf '%s\n' "$ELEMENTS_INSTANCE" | grep -q -e '^[%0-9a-zA-Z_+.-]*$'); then
+ echo "elements: error: \`$ELEMENTS_INSTANCE\` is not a valid instance ID" >&2
+ exit 2
+fi
+
+ELEMENTS_INSTANCE=$(printf '%s\n' "${ELEMENTS_INSTANCE:-%}" |
  awk -v random_12="$(random_12)" \
  '{ gsub(/%/, random_12); print }')
 
 ELEMENTS_ID="$ELEMENTS_NAME.$ELEMENTS_INSTANCE"
+
 _jq \
  --arg env_magic "ELEMENTS_MAGIC=$ELEMENTS_MAGIC" \
  --arg env_instance "ELEMENTS_INSTANCE=$ELEMENTS_INSTANCE" \
@@ -199,10 +239,6 @@ _jq \
   $env_id,
   $env_term
  ]'
-
-printf '%s\n' "$ELEMENTS_NAME" > "$BUNDLE/name"
-printf '%s\n' "$ELEMENTS_INSTANCE" > "$BUNDLE/instance"
-printf '%s\n' "$ELEMENTS_ID" > "$BUNDLE/id"
 
 basic_mounts='{
  "destination": "/tmp",
@@ -226,13 +262,15 @@ if ! [ -t 0 ]; then
  __CONFIG_TERMINAL=false
 fi
 
+FINAL_BUNDLE_PATH="$STATE_ROOT/$ELEMENTS_ID"
+
 _jq \
  --arg cmd "/.elements-entry" \
  --argjson terminal $__CONFIG_TERMINAL \
  --arg hostname "$(hostname 2>/dev/null || echo "${HOSTNAME:-Elements}")" \
  --arg rootfs "$APPDIR/rootfs" \
  --arg cleanup "$APPDIR/elements-cleanup.sh" \
- --arg bundle "$BUNDLE" \
+ --arg bundle "$FINAL_BUNDLE_PATH" \
  '
   .process.args[0]=$cmd |
   .process.terminal=$terminal |
@@ -247,10 +285,34 @@ _jq \
 
 
 # cleanup bootstrap environment  #{{{2
-rm -rf "$BUNDLE/rootfs"
+
+rm -rf "$BOOTSTRAP_BUNDLE/rootfs"
+
+
+# prepare final bundle  #{{{2
+
+if [ -e "$FINAL_BUNDLE_PATH" ]; then
+ echo "elements: error: a container with ID \`$ELEMENTS_ID\` already exists" >&2
+ exit 127
+fi
+mkdir -m 0700 "$FINAL_BUNDLE_PATH"
+FINAL_BUNDLE=$FINAL_BUNDLE_PATH
+
+printf '%s\n' "$ELEMENTS_MAGIC" > "$FINAL_BUNDLE/magic"
+printf '%s\n' "$ELEMENTS_NAME" > "$FINAL_BUNDLE/name"
+printf '%s\n' "$ELEMENTS_INSTANCE" > "$FINAL_BUNDLE/instance"
+printf '%s\n' "$ELEMENTS_ID" > "$FINAL_BUNDLE/id"
+ln -s "$APPDIR" "$FINAL_BUNDLE/appdir"
+
+mv "$BOOTSTRAP_BUNDLE/final.json" "$FINAL_BUNDLE/config.json"
+
+rm -rf "$BOOTSTRAP_BUNDLE"
+BOOTSTRAP_BUNDLE=
 
 
 # run container  #{{{2
 
-mv "$BUNDLE/final.json" "$BUNDLE/config.json"
-exec runc run -b "$BUNDLE" "$ELEMENTS_ID"
+exec runc run \
+ --pid-file "$FINAL_BUNDLE/pid" \
+ -b "$FINAL_BUNDLE" \
+ "$ELEMENTS_ID"
