@@ -1,0 +1,22 @@
+#Elements.name: test-simple
+
+#Elements.args: -d:bind>/srv:ro -p:env>PORT:int -n:instance spam:env>SPAM
+#Elements.env: DOCROOT=$d
+
+Bootstrap: docker
+From: alpine
+
+%post
+ apk add fortune
+
+
+%runscript
+ (
+  SHLVL=$((SHLVL+1))
+  eval "printf %s \"$PS1\""
+  (cmd='env | sort | sed -e "s/^PS1=.*\$/PS1=.../g"'; echo "$cmd"; eval "$cmd")
+ )
+ exec sh
+
+
+# vim: set ft=sh:
