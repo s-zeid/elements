@@ -150,3 +150,16 @@ pre.highlight {
  padding-left: 1.5em;
  list-style: disc; list-style: "\b7  ";
 }
+
+h2 a[href^="#"], h3 a[href^="#"], h4 a[href^="#"],
+h5 a[href^="#"], h6 a[href^="#"] {
+ color: inherit;
+ text-decoration: none;
+}
+h2 a[href^="#"]:hover:after, h3 a[href^="#"]:hover:after, h4 a[href^="#"]:hover:after,
+h5 a[href^="#"]:hover:after, h6 a[href^="#"]:hover:after {
+ content: " #";
+ position: relative; top: -0.125em;
+ font-size: 0.875em;
+ opacity: 0.2;
+}
