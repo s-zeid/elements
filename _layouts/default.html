@@ -12,21 +12,10 @@
   <link rel="stylesheet" href="{{ root }}/static/colors.css" />
   <link rel="stylesheet" href="{{ root }}/static/main.css" />
   <link rel="stylesheet" href="{{ root }}/static/fonts.css" />
+  <script src="{{ root }}/static/main.js" async></script>
  </head><!--]]]1-->
  <body>
   <header class="fixed">
-   <script>
-    (function() {
-     function onScroll() {
-      if (!window.scrollY)
-       document.documentElement.classList.add("top");
-      else
-       document.documentElement.classList.remove("top");
-     };
-     window.addEventListener("scroll", onScroll);
-     onScroll();
-    })();
-   </script>
    <h1>
     <a href="{{ root }}/">
      <span class="name">{{ site.title | escape }}</span>
@@ -43,11 +32,5 @@
   </main>
   <footer class="">
 {% include footer.html %}  </footer>
-  <script>
-   document.querySelectorAll("a[href^='https:'], a[href^='http:']").forEach(function(i) {
-    if (!i.getAttribute("target"))
-     i.setAttribute("target", "_blank");
-   });
-  </script>
  </body>
 </html>
