@@ -13,7 +13,10 @@ hr {
 .dark hr {
  border-color: #e8e5df;
 }
-body > header:not(.dark).fixed:after,
+header:not(.dark):not(.line):not(.shadow) {
+ background: rgba(240, 235, 238, 0.9375);
+}
+body > header:not(.dark).fixed.line:after,
 body > footer:not(.dark) {
  border-color: rgba(92, 88, 84, 0.5);
 }
