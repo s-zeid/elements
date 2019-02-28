@@ -52,7 +52,7 @@ the following items on the root user's $PATH:
 
 2.  Clone the Git repository:
 
-    $ git clone https://gitlab.com/scottywz/elements.git
+        $ git clone https://gitlab.com/scottywz/elements.git
 
 3.  Run `make` from the repository root.  The compiled version of Elements
     will be called `elements` in the repository root.
