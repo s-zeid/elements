@@ -33,7 +33,7 @@ body > header h1 + nav a.current {
  font-weight: bold;
 }
 body > header a[href="#"] {
- float: right; position: relative; top: -0.5em;
+ float: right; position: relative; top: -0.5em; right: -0.5em;
  padding: 0.625em 1em 1em;
  font-weight: bold;
 }
@@ -78,16 +78,14 @@ html.top .not-top {
  display: none;
 }
 @media (max-width: 639px) {
- body > header h1 .name,
- html:not(.top) body > header nav {
+ body > header h1 .name {
   display: none;
  }
- html:not(.top) body > header h1 .name.mobile {
-  display: inline;
-  font-weight: normal;
+ body > header h1 .icon {
+  margin-right: 0.125em;
  }
  html:not(.top) body > header a[href="#"]:before {
-  content: "Back to top ";
+  content: "To top ";
   position: relative; top: 0.1em;
  }
 }

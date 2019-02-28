@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<!-- vim: set sw=1 fdl=1 fdm=marker fmr=[[[,]]]: -->
 {%- assign _parts = page.dir | replace_first: "/", "" | split: "/" %}
 {%- capture root %}{%- for _ in _parts %}/..{% endfor %}{% endcapture %}
 {%- assign root = root | default: "." | replace_first: "/", "" %}
 {%- assign root_ = root | append: "/" %}
 <html class="top" data-root="{{ root }}">
- <head><!--[[[1-->
+ <head>
   <meta charset="utf-8" />
   <title>{{ site.title | strip_html | escape }}{% if page.title %} · {{ page.title | strip_html | escape }}{% endif %}</title>
   <link rel="shortcut icon" type="image/x-icon" href="{{ root }}/favicon.ico" />
+  <meta name="viewport" content="width=360, initial-scale=1" />
   <link rel="stylesheet" href="{{ root }}/static/colors.css" />
   <link rel="stylesheet" href="{{ root }}/static/main.css" />
   <link rel="stylesheet" href="{{ root }}/static/fonts.css" />
   <script src="{{ root }}/static/main.js" async></script>
- </head><!--]]]1-->
+ </head>
  <body>
   <header class="fixed">
    <h1>
