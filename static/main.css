@@ -100,8 +100,8 @@ html.top .not-top {
 body > header.fixed + main [id]:before {
  content: "";
  display: block;
- height: 80px;
- margin: -80px 0 0 0;
+ height: 4.25rem;
+ margin: -4.25rem 0 0 0;
 }
 
 a {
@@ -128,7 +128,7 @@ main > p:last-child {
 }
 hr {
  border-bottom: none;
- opacity: .25;
+ opacity: 0.25;
 }
 
 pre {
