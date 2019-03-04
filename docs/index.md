@@ -20,6 +20,7 @@ Contents
     * [Miscellaneous options](#miscellaneous-options)
         * [name](#name)
         * [resolv](#resolv)
+        * [root-copyup](#root-copyup)
         * [terminal](#terminal)
         * [ps1-color](#ps1-color)
 
@@ -219,6 +220,19 @@ The runc container ID will be of the format \`{name}.[{instance}](#instance)\`.
 
 (bool) Whether to automatically bind mount `/etc/resolv.conf` in the
 container.  Defaults to true.
+
+
+### root-copyup
+
+(bool) Whether to copy the root filesystem to a tmpfs (and use that
+tmpfs as the root filesystem) at runtime.  Defaults to false.
+
+Note that if this option is true, the entire root filesystem will be
+copied into RAM.  Use caution when using this option with large
+container images.
+
+Also note that with the current implementation, the resulting tmpfs
+will be writable from the host.
 
 
 #### terminal
