@@ -7,6 +7,7 @@ __pycache__
 
 /elements
 
+/runtime
 test/*/element
 test/parsing/data/*
 !test/parsing/data/precious.txt
