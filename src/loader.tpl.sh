@@ -49,9 +49,12 @@ if ! [ -e "$STATE_ROOT/.@magic" ]; then
  chmod 0600 "$STATE_ROOT/.@magic"
 fi
 
+SHM_ROOT="/dev/shm/elements-u$(id -u)"
+
 
 BOOTSTRAP_BUNDLE=
 FINAL_BUNDLE=
+SHM_DIR=
 
 cleanup() {
  if [ x"$BOOTSTRAP_BUNDLE" != x"" ] && [ -d "$BOOTSTRAP_BUNDLE" ]; then
@@ -59,6 +62,9 @@ cleanup() {
  fi
  if [ x"$FINAL_BUNDLE" != x"" ] && [ -d "$FINAL_BUNDLE" ]; then
   "$APPDIR/elements-cleanup.sh" "$FINAL_BUNDLE" || true
+ fi
+ if [ x"$SHM_DIR" != x"" ] && [ -d "$SHM_DIR" ]; then
+  rm -rf "$SHM_DIR" || true
  fi
 }
 
@@ -228,6 +234,7 @@ ELEMENTS_INSTANCE=$(printf '%s\n' "${ELEMENTS_INSTANCE:-%}" |
 
 ELEMENTS_ID="$ELEMENTS_NAME.$ELEMENTS_INSTANCE"
 FINAL_BUNDLE_PATH="$STATE_ROOT/$ELEMENTS_ID"
+SHM_DIR_PATH="$SHM_ROOT/$ELEMENTS_ID"
 
 _jq \
  --arg env_magic "ELEMENTS_MAGIC=$ELEMENTS_MAGIC" \
@@ -266,8 +273,10 @@ if ! [ -t 0 ]; then
 fi
 
 RUNC_ROOTFS="$APPDIR/rootfs"
+JQ_SHM_PATH=
 if [ $__CONFIG_ROOT_COPYUP -ne 0 ]; then
- RUNC_ROOTFS="$FINAL_BUNDLE_PATH/copyup"
+ RUNC_ROOTFS="$SHM_DIR_PATH/copyup"
+ JQ_SHM_PATH=$SHM_DIR_PATH
 fi
 
 _jq \
@@ -277,6 +286,7 @@ _jq \
  --arg rootfs "$RUNC_ROOTFS" \
  --arg cleanup "$APPDIR/elements-cleanup.sh" \
  --arg bundle "$FINAL_BUNDLE_PATH" \
+ --arg shm "$JQ_SHM_PATH" \
  '
   .process.args[0]=$cmd |
   .process.terminal=$terminal |
@@ -285,7 +295,7 @@ _jq \
   .root.readonly=false |
   (.hooks.poststop |= . + [{
    "path": $cleanup,
-   "args": ["elements-cleanup.sh", $bundle]
+   "args": ["elements-cleanup.sh", $bundle, $shm]
   }])
  '
 
@@ -311,8 +321,12 @@ printf '%s\n' "$ELEMENTS_ID" > "$FINAL_BUNDLE/id"
 ln -s "$APPDIR" "$FINAL_BUNDLE/appdir"
 
 if [ $__CONFIG_ROOT_COPYUP -ne 0 ]; then
- cp -pPR "$APPDIR/rootfs" "$FINAL_BUNDLE_PATH/copyup"
- chmod 0700 "$FINAL_BUNDLE_PATH/copyup"
+ mkdir -m 0700 -p "$SHM_ROOT"
+ mkdir -m 0700 "$SHM_DIR_PATH"
+ SHM_DIR=$SHM_DIR_PATH
+ ln -s "$SHM_DIR" "$FINAL_BUNDLE/shm"
+ cp -pPR "$APPDIR/rootfs" "$SHM_DIR/copyup"
+ chmod 0700 "$SHM_DIR/copyup"
 fi
 
 mv "$BOOTSTRAP_BUNDLE/final.json" "$FINAL_BUNDLE/config.json"

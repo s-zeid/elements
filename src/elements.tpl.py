@@ -850,6 +850,7 @@ if [ x"$1" = x"" ]; then
 fi
 
 bundle=$1
+shm=$2
 
 if (! [ -f "$bundle/magic" ]) || [ x"$(cat "$bundle/magic")" != x"Elements" ]; then
  echo "$0: error: bundle is not an Elements bundle" >&2
@@ -858,6 +859,10 @@ fi
 
 rm -f "$bundle/appdir"
 rm -rf "$bundle"
+
+if [ x"$shm" != x"" ] && [ -d "$shm" ]; then
+ rm -rf "$shm"
+fi
 """.lstrip()
 
 
