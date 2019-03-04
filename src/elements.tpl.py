@@ -137,6 +137,7 @@ class Element:  #{{{1
   "name": "elements",
   "ps1-color": 27,
   "resolv": True,
+  "root-copyup": False,
   "terminal": True
  }
  
@@ -350,14 +351,14 @@ class Element:  #{{{1
      if key not in self.CONFIG_DEFAULTS.keys():
       raise ElementError("invalid config key \`%s\`:" % key, line)
      
+     if isinstance(self.config[key], bool):
+      value = parse_bool(value, line, "%s has an" % key)
+     
      if isinstance(self.config[key], int):
       try:
        value = int(value)
       except ValueError:
        raise ElementError("%s must be an integer:" % key, line)
-     
-     if isinstance(self.config[key], bool):
-      value = parse_bool(value, line, "%s has an" % key)
      
      self.config[key] = value
      continuation = False
@@ -399,6 +400,7 @@ class Element:  #{{{1
    "__CONFIG_NAME=" + str(self.config["name"] or self.CONFIG_DEFAULTS["name"]),
    "__CONFIG_PS1_COLOR=%d" % int(self.config["ps1-color"]),
    "__CONFIG_RESOLV=%d" % int(self.config["resolv"]),
+   "__CONFIG_ROOT_COPYUP=%d" % int(self.config["root-copyup"]),
    "__CONFIG_TERMINAL=" + str(self.config["terminal"]).lower()
   ]
   

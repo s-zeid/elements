@@ -227,6 +227,7 @@ ELEMENTS_INSTANCE=$(printf '%s\n' "${ELEMENTS_INSTANCE:-%}" |
  '{ gsub(/%/, random_12); print }')
 
 ELEMENTS_ID="$ELEMENTS_NAME.$ELEMENTS_INSTANCE"
+FINAL_BUNDLE_PATH="$STATE_ROOT/$ELEMENTS_ID"
 
 _jq \
  --arg env_magic "ELEMENTS_MAGIC=$ELEMENTS_MAGIC" \
@@ -239,6 +240,7 @@ _jq \
   $env_id,
   $env_term
  ]'
+
 
 basic_mounts='{
  "destination": "/tmp",
@@ -258,17 +260,21 @@ fi
 
 _jq '.mounts |= . + ['"$basic_mounts"']'
 
+
 if ! [ -t 0 ]; then
  __CONFIG_TERMINAL=false
 fi
 
-FINAL_BUNDLE_PATH="$STATE_ROOT/$ELEMENTS_ID"
+RUNC_ROOTFS="$APPDIR/rootfs"
+if [ $__CONFIG_ROOT_COPYUP -ne 0 ]; then
+ RUNC_ROOTFS="$FINAL_BUNDLE_PATH/copyup"
+fi
 
 _jq \
  --arg cmd "/.elements-entry" \
  --argjson terminal $__CONFIG_TERMINAL \
  --arg hostname "$(hostname 2>/dev/null || echo "${HOSTNAME:-Elements}")" \
- --arg rootfs "$APPDIR/rootfs" \
+ --arg rootfs "$RUNC_ROOTFS" \
  --arg cleanup "$APPDIR/elements-cleanup.sh" \
  --arg bundle "$FINAL_BUNDLE_PATH" \
  '
@@ -303,6 +309,11 @@ printf '%s\n' "$ELEMENTS_NAME" > "$FINAL_BUNDLE/name"
 printf '%s\n' "$ELEMENTS_INSTANCE" > "$FINAL_BUNDLE/instance"
 printf '%s\n' "$ELEMENTS_ID" > "$FINAL_BUNDLE/id"
 ln -s "$APPDIR" "$FINAL_BUNDLE/appdir"
+
+if [ $__CONFIG_ROOT_COPYUP -ne 0 ]; then
+ cp -pPR "$APPDIR/rootfs" "$FINAL_BUNDLE_PATH/copyup"
+ chmod 0700 "$FINAL_BUNDLE_PATH/copyup"
+fi
 
 mv "$BOOTSTRAP_BUNDLE/final.json" "$FINAL_BUNDLE/config.json"
 
