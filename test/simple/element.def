@@ -1,7 +1,7 @@
 #Elements.name: test-simple
 
-#Elements.args: -d:bind>/srv:ro -p:env>PORT:int -n:instance spam:env>SPAM
-#Elements.env: DOCROOT=$d
+#Elements.args: -d:bind>/srv:ro -p:env>PORT:int -n:instance spam:env>SPAM -o:output
+#Elements.env: DOCROOT=$d OUTPUT=$o
 
 Bootstrap: docker
 From: alpine
@@ -16,6 +16,9 @@ From: alpine
   eval "printf %s \"$PS1\""
   (cmd='env | sort | sed -e "s/^PS1=.*\$/PS1=.../g"'; echo "$cmd"; eval "$cmd")
  )
+ if [ x"$OUTPUT" != x"" ]; then
+  printf '%s\n' "$ELEMENTS_ID $(date +%s)" > /out/egg
+ fi
  exec sh
 
 

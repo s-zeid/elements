@@ -11,6 +11,8 @@ ELEMENTS_ID=
 ELEMENTS_INSTANCE=
 ELEMENTS_NAME=
 
+__PWD=$(pwd)
+
 
 set -e
 
@@ -214,10 +216,14 @@ _jq() {
 
 cp "$BOOTSTRAP_BUNDLE/config.json" "$BOOTSTRAP_BUNDLE/final.json"
 
+
+__CONFIG_OUTPUT=
+
 config_misc
 config_args "$@"
 config_env
 config_binds
+
 
 if ! (printf '%s\n' "$ELEMENTS_NAME" | grep -q -e '^[0-9a-zA-Z_+.-]\+$'); then
  echo "elements: error: \`$ELEMENTS_NAME\` is not a valid container app name" >&2
@@ -235,6 +241,7 @@ ELEMENTS_INSTANCE=$(printf '%s\n' "${ELEMENTS_INSTANCE:-%}" |
 ELEMENTS_ID="$ELEMENTS_NAME.$ELEMENTS_INSTANCE"
 FINAL_BUNDLE_PATH="$STATE_ROOT/$ELEMENTS_ID"
 SHM_DIR_PATH="$SHM_ROOT/$ELEMENTS_ID"
+
 
 _jq \
  --arg env_magic "ELEMENTS_MAGIC=$ELEMENTS_MAGIC" \
@@ -265,17 +272,36 @@ if [ $__CONFIG_RESOLV -ne 0 ] && [ -f /etc/resolv.conf ]; then
  }'
 fi
 
-_jq '.mounts |= . + ['"$basic_mounts"']'
+if [ $__CONFIG__DO_OUTPUT -ne 0 ]; then
+ basic_mounts="$basic_mounts,"'{
+  "destination": "/out",
+  "type": "bind",
+  "source": $shm_out,
+  "options": ["rbind"]
+ }'
+fi
+
+
+_jq --arg shm_out "$SHM_DIR_PATH/out" '.mounts |= . + ['"$basic_mounts"']'
 
 
 if ! [ -t 0 ]; then
  __CONFIG_TERMINAL=false
 fi
 
-RUNC_ROOTFS="$APPDIR/rootfs"
 JQ_SHM_PATH=
+
+RUNC_ROOTFS="$APPDIR/rootfs"
 if [ $__CONFIG_ROOT_COPYUP -ne 0 ]; then
  RUNC_ROOTFS="$SHM_DIR_PATH/copyup"
+ JQ_SHM_PATH=$SHM_DIR_PATH
+fi
+
+JQ_PWD=
+JQ_OUTPUT=
+if [ $__CONFIG__DO_OUTPUT -ne 0 ]; then
+ JQ_PWD=$__PWD
+ JQ_OUTPUT=${__CONFIG_OUTPUT:-.}
  JQ_SHM_PATH=$SHM_DIR_PATH
 fi
 
@@ -284,7 +310,12 @@ _jq \
  --argjson terminal $__CONFIG_TERMINAL \
  --arg hostname "$(hostname 2>/dev/null || echo "${HOSTNAME:-Elements}")" \
  --arg rootfs "$RUNC_ROOTFS" \
- --arg cleanup "$APPDIR/elements-cleanup.sh" \
+ --arg output_hook "$APPDIR/elements-output.sh" \
+ --arg argv0 "$ELEMENTS_ARGV0" \
+ --arg id "$ELEMENTS_ID" \
+ --arg pwd "$JQ_PWD" \
+ --arg output "$JQ_OUTPUT" \
+ --arg cleanup_hook "$APPDIR/elements-cleanup.sh" \
  --arg bundle "$FINAL_BUNDLE_PATH" \
  --arg shm "$JQ_SHM_PATH" \
  '
@@ -294,7 +325,10 @@ _jq \
   .root.path=$rootfs |
   .root.readonly=false |
   (.hooks.poststop |= . + [{
-   "path": $cleanup,
+   "path": $output_hook,
+   "args": ["elements-output.sh", $argv0, $id, $shm, "/out", $pwd, $output]
+  },{
+   "path": $cleanup_hook,
    "args": ["elements-cleanup.sh", $bundle, $shm]
   }])
  '
@@ -320,13 +354,20 @@ printf '%s\n' "$ELEMENTS_INSTANCE" > "$FINAL_BUNDLE/instance"
 printf '%s\n' "$ELEMENTS_ID" > "$FINAL_BUNDLE/id"
 ln -s "$APPDIR" "$FINAL_BUNDLE/appdir"
 
-if [ $__CONFIG_ROOT_COPYUP -ne 0 ]; then
+if [ $__CONFIG_ROOT_COPYUP -ne 0 ] || [ $__CONFIG__DO_OUTPUT -ne 0 ]; then
  mkdir -m 0700 -p "$SHM_ROOT"
  mkdir -m 0700 "$SHM_DIR_PATH"
  SHM_DIR=$SHM_DIR_PATH
  ln -s "$SHM_DIR" "$FINAL_BUNDLE/shm"
+fi
+
+if [ $__CONFIG_ROOT_COPYUP -ne 0 ]; then
  cp -pPR "$APPDIR/rootfs" "$SHM_DIR/copyup"
  chmod 0700 "$SHM_DIR/copyup"
+fi
+
+if [ $__CONFIG__DO_OUTPUT -ne 0 ]; then
+ mkdir -m 0700 "$SHM_DIR/out"
 fi
 
 mv "$BOOTSTRAP_BUNDLE/final.json" "$FINAL_BUNDLE/config.json"

@@ -1,8 +1,8 @@
 #Elements.name: test-copyup
 #Elements.ps1-color: 3
 
-#Elements.args: -d:bind>/srv:ro -p:env>PORT:int -n:instance spam:env>SPAM
-#Elements.env: DOCROOT=$d
+#Elements.args: -d:bind>/srv:ro -p:env>PORT:int -n:instance spam:output
+#Elements.env: DOCROOT=$d OUTPUT=$spam
 #Elements.root-copyup: true
 
 Bootstrap: docker
@@ -18,6 +18,9 @@ From: alpine
   eval "printf %s \"$PS1\""
   (cmd='env | sort | sed -e "s/^PS1=.*\$/PS1=.../g"'; echo "$cmd"; eval "$cmd")
  )
+ if [ x"$OUTPUT" != x"-" ]; then
+  printf '%s\n' "$ELEMENTS_ID $(date +%s)" > /out/egg
+ fi
  exec sh
 
 

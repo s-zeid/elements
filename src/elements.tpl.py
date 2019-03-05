@@ -138,7 +138,8 @@ class Element:  #{{{1
   "ps1-color": 27,
   "resolv": True,
   "root-copyup": False,
-  "terminal": True
+  "terminal": True,
+  "_do_output": False
  }
  
  SPECIAL_ENV = [
@@ -205,7 +206,7 @@ class Element:  #{{{1
     f.write(ELEMENTS_ENTRY)
    _chmod_x(entry)
    
-   # /exec and /sh  #{{{3
+   # /exec, /sh, and /out  #{{{3
    exec_ = os.path.join(element_root, "exec")
    with open(exec_, "wb") as f:
     f.write(b"#!/bin/sh\n\nexec /.singularity.d/actions/exec \"$@\"\n")
@@ -215,6 +216,10 @@ class Element:  #{{{1
    with open(sh, "wb") as f:
     f.write(b"#!/bin/sh\n\n/exec /bin/sh \"$@\"\n")
    _chmod_x(sh)
+   
+   out = os.path.join(element_root, "out")
+   if self.config["_do_output"]:
+    os.mkdir(out)
    
    # PS1 scripts  {{{3
    env_base = os.path.join(element_root, ".singularity.d", "env", "99-base.sh")
@@ -255,7 +260,12 @@ class Element:  #{{{1
     f.write(APPRUN.replace(b"___loader___", os.path.basename(loader).encode("utf8")))
    _chmod_x(apprun)
    
-   # cleanup, license, and version  #{{{3
+   # output, cleanup, license, and version  #{{{3
+   output = os.path.join(tmp, "elements-output.sh")
+   with open(output, "wb") as f:
+    f.write(OUTPUT)
+   _chmod_x(output)
+   
    cleanup = os.path.join(tmp, "elements-cleanup.sh")
    with open(cleanup, "wb") as f:
     f.write(CLEANUP)
@@ -401,7 +411,8 @@ class Element:  #{{{1
    "__CONFIG_PS1_COLOR=%d" % int(self.config["ps1-color"]),
    "__CONFIG_RESOLV=%d" % int(self.config["resolv"]),
    "__CONFIG_ROOT_COPYUP=%d" % int(self.config["root-copyup"]),
-   "__CONFIG_TERMINAL=" + str(self.config["terminal"]).lower()
+   "__CONFIG_TERMINAL=" + str(self.config["terminal"]).lower(),
+   "__CONFIG__DO_OUTPUT=%d" % int(self.config["_do_output"])
   ]
   
   result %= "\n".join([" " + i for i in blocks])
@@ -524,7 +535,7 @@ class Arg(Item):  #{{{1
  
  is_bool: bool = False
  
- KINDS = ["env", "bind", "instance"]
+ KINDS = ["env", "bind", "instance", "output"]
  
  def __init__(self, el: Element, spec: str) -> None:  #{{{2
   self.el = el
@@ -559,9 +570,14 @@ class Arg(Item):  #{{{1
   env_export = True
   
   if self.kind == "instance":
+   rhs = "ELEMENTS_%s=%s" % (self.kind.upper(), rhs)
    self.kind = "env"
    env_export = False
-   rhs = "ELEMENTS_INSTANCE=" + rhs
+  if self.kind == "output":
+   rhs = "__CONFIG_%s=%s" % (self.kind.upper(), rhs)
+   self.kind = "env"
+   env_export = False
+   self.el.config["_do_output"] = True
   
   if self.kind == "bind":
    self.value = Bind(self.el, spec=rhs, _from=lhs + ">", _src="${%s}" % self.sh_var)
@@ -863,6 +879,57 @@ rm -rf "$bundle"
 if [ x"$shm" != x"" ] && [ -d "$shm" ]; then
  rm -rf "$shm"
 fi
+""".lstrip()
+
+
+# OUTPUT  #{{{1
+OUTPUT: bytes = br"""
+#!/bin/sh
+
+if [ $# -ne 6 ]; then
+ echo "$0: usage: $0 argv0 id shm-dir inside-src pwd outside-dest" >&2
+ exit 2
+fi
+
+argv0=$1
+id=$2
+shm=$3
+src=$4
+pwd=$5
+dest=$6
+
+if [ x"$dest" = x"" ]; then
+ exit
+fi
+
+if ! [ -d "$pwd" ]; then
+ echo "$argv0: error: working directory \`$pwd\` is no longer a directory" >&2
+ exit
+fi
+
+cd "$pwd"
+
+if [ -d "$dest" ]; then
+ dest="$dest/$id.out"
+fi
+
+#if [ -e "$dest" ]; then
+# read -p "$argv0: Overwrite \`$dest\` (y/N)? " -r answer
+# if ! (printf '%s\n' "$answer" | grep -q -e '^[yY]'); then
+#  exit
+# fi
+#fi
+
+src="$shm/$src"
+
+entries=$(ls -A -1 "$src" | wc -l)
+if [ x"$entries" = x"0" ]; then
+ exit
+elif [ x"$entries" = x"1" ]; then
+ src="$src/$(ls -A -1 "$src" | head -n 1)"
+fi
+
+mv "$src" "$dest" || true
 """.lstrip()
 
 
