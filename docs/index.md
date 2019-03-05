@@ -15,6 +15,7 @@ Contents
             * [bind](#bind)
             * [env](#env)
             * [instance](#instance)
+            * [output](#output)
     * [bind](#bind-1)
     * [env](#env-1)
     * [Miscellaneous options](#miscellaneous-options)
@@ -137,6 +138,26 @@ Valid characters are 0-9, A-Z, a-z, `_`, `-`, `+`, `.`, and `%`.
 Except for `%`, this is enforced by runc.
 
 The runc container ID will be of the format \`[{name}](#name).{instance}\`.
+
+
+##### output
+
+    {name}:output
+
+If this argument is defined, a tmpfs will be bind-mounted at `/out` in
+the container, and any files in that tmpfs at exit will be moved to the
+host path specified by the user (which defaults to the AppImage's working
+directory).
+
+If `/out` contains one file at exit, that file will be moved to the
+specified host path.  If `/out` contains more than one file, the entire
+directory will be moved, as a directory, to the host path.  If `/out`
+contains no files, the host path, if it exists, will be left intact.
+
+If the user-specified path is a directory, then the output file or directory
+will be placed in that directory, and its name will have the format
+`{container ID}.out`.  (See [instance](#instance) and [name](#name) for the
+format of the container ID.)
 
 
 ### bind
