@@ -877,6 +877,7 @@ rm -f "$bundle/appdir"
 rm -rf "$bundle"
 
 if [ x"$shm" != x"" ] && [ -d "$shm" ]; then
+ chmod -R +w "$shm"
  rm -rf "$shm"
 fi
 """.lstrip()
