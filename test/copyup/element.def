@@ -14,14 +14,14 @@ From: alpine
 
 %runscript
  (
-  SHLVL=$((SHLVL+1))
-  eval "printf %s \"$PS1\""
-  (cmd='env | sort | sed -e "s/^PS1=.*\$/PS1=.../g"'; echo "$cmd"; eval "$cmd")
+  SHLVL=$((SHLVL+2))
+  eval "printf %s \"$(/exec printenv PS1)\""
+  (cmd='env | sort | sed -e "s/^PS1=.*\$/PS1=.../g"'; echo "$cmd"; eval "/exec $cmd")
  )
  if [ x"$OUTPUT" != x"-" ]; then
   printf '%s\n' "$ELEMENTS_ID $(date +%s)" > /out/egg
  fi
- exec sh
+ exec /sh
 
 
 # vim: set ft=sh:
