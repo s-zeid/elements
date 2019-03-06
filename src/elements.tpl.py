@@ -214,7 +214,7 @@ class Element:  #{{{1
    
    sh = os.path.join(element_root, "sh")
    with open(sh, "wb") as f:
-    f.write(b"#!/bin/sh\n\n/exec /bin/sh \"$@\"\n")
+    f.write(b"#!/bin/sh\n\nexec /exec /bin/sh \"$@\"\n")
    _chmod_x(sh)
    
    out = os.path.join(element_root, "out")
