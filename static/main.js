@@ -22,5 +22,8 @@
    });
    i.appendChild(a);
   });
+  
+  if (document.querySelector("#contents + ul a"))
+   new Gumshoe("#contents + ul a", {offset: 64, reflow: true});
  });
 })();

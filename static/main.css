@@ -150,6 +150,9 @@ pre.highlight {
  padding-left: 1.5em;
  list-style: disc; list-style: "\b7  ";
 }
+#contents + ul .active > a {
+ font-weight: bold;
+}
 
 h2 a[href^="#"], h3 a[href^="#"], h4 a[href^="#"],
 h5 a[href^="#"], h6 a[href^="#"] {
