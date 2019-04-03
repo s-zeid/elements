@@ -867,6 +867,7 @@ fi
 
 bundle=$1
 shm=$2
+out_tmp=$3
 
 if (! [ -f "$bundle/magic" ]) || [ x"$(cat "$bundle/magic")" != x"Elements" ]; then
  echo "$0: error: bundle is not an Elements bundle" >&2
@@ -880,6 +881,11 @@ if [ x"$shm" != x"" ] && [ -d "$shm" ]; then
  chmod -R +w "$shm"
  rm -rf "$shm"
 fi
+
+if [ x"$out_tmp" != x"" ] && [ -d "$out_tmp" ]; then
+ chmod -R +w "$out_tmp"
+ rm -rf "$out_tmp"
+fi
 """.lstrip()
 
 
@@ -888,13 +894,13 @@ OUTPUT: bytes = br"""
 #!/bin/sh
 
 if [ $# -ne 6 ]; then
- echo "$0: usage: $0 argv0 id shm-dir inside-src pwd outside-dest" >&2
+ echo "$0: usage: $0 argv0 id out-tmp-dir inside-src pwd outside-dest" >&2
  exit 2
 fi
 
 argv0=$1
 id=$2
-shm=$3
+out_tmp=$3
 src=$4
 pwd=$5
 dest=$6
@@ -921,7 +927,7 @@ fi
 # fi
 #fi
 
-src="$shm/$src"
+src="$out_tmp/$src"
 
 entries=$(ls -A -1 "$src" | wc -l)
 if [ x"$entries" = x"0" ]; then

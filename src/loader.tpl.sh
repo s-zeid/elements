@@ -57,6 +57,7 @@ SHM_ROOT="/dev/shm/elements-u$(id -u)"
 BOOTSTRAP_BUNDLE=
 FINAL_BUNDLE=
 SHM_DIR=
+OUT_TMP_DIR=
 
 cleanup() {
  if [ x"$BOOTSTRAP_BUNDLE" != x"" ] && [ -d "$BOOTSTRAP_BUNDLE" ]; then
@@ -67,6 +68,9 @@ cleanup() {
  fi
  if [ x"$SHM_DIR" != x"" ] && [ -d "$SHM_DIR" ]; then
   rm -rf "$SHM_DIR" || true
+ fi
+ if [ x"$OUT_TMP_DIR" != x"" ] && [ -d "$OUT_TMP_DIR" ]; then
+  rm -rf "$OUT_TMP_DIR" || true
  fi
 }
 
@@ -242,6 +246,19 @@ ELEMENTS_ID="$ELEMENTS_NAME.$ELEMENTS_INSTANCE"
 FINAL_BUNDLE_PATH="$STATE_ROOT/$ELEMENTS_ID"
 SHM_DIR_PATH="$SHM_ROOT/$ELEMENTS_ID"
 
+# use the output directory for OUT_TMP_DIR
+# we must actually make the tmpdir here because mktemp(1) is used
+if [ $__CONFIG__DO_OUTPUT -ne 0 ]; then
+ out_dir=${__CONFIG_OUTPUT:-.}
+ if ! [ -d "$out_dir" ]; then
+  out_dir=$(dirname -- "$out_dir")
+ fi
+ out_dir=$(cd "$out_dir" && pwd)
+ OUT_TMP_DIR_PATH="$out_dir/.elements-out-tmp.$ELEMENTS_ID.XXXXXX"
+ OUT_TMP_DIR_PATH=$(mktemp -d "$OUT_TMP_DIR_PATH")
+ chmod 0700 "$OUT_TMP_DIR_PATH"
+ OUT_TMP_DIR=$OUT_TMP_DIR_PATH
+fi
 
 _jq \
  --arg env_magic "ELEMENTS_MAGIC=$ELEMENTS_MAGIC" \
@@ -276,14 +293,18 @@ if [ $__CONFIG__DO_OUTPUT -ne 0 ]; then
  basic_mounts="$basic_mounts,"'{
   "destination": "/out",
   "type": "bind",
-  "source": $shm_out,
+  "source": $out_out,
+  "options": ["rbind"]
+ },{
+  "destination": "/tmp/out",
+  "type": "bind",
+  "source": $out_tmp,
   "options": ["rbind"]
  }'
 fi
 
-
-_jq --arg shm_out "$SHM_DIR_PATH/out" '.mounts |= . + ['"$basic_mounts"']'
-
+_jq --arg out_out "$OUT_TMP_DIR/out" --arg out_tmp "$OUT_TMP_DIR/tmp" \
+ '.mounts |= . + ['"$basic_mounts"']'
 
 if ! [ -t 0 ]; then
  __CONFIG_TERMINAL=false
@@ -299,10 +320,12 @@ fi
 
 JQ_PWD=
 JQ_OUTPUT=
+JQ_OUT_TMP_DIR=
 if [ $__CONFIG__DO_OUTPUT -ne 0 ]; then
  JQ_PWD=$__PWD
  JQ_OUTPUT=${__CONFIG_OUTPUT:-.}
  JQ_SHM_PATH=$SHM_DIR_PATH
+ JQ_OUT_TMP_DIR=$OUT_TMP_DIR
 fi
 
 _jq \
@@ -318,6 +341,7 @@ _jq \
  --arg cleanup_hook "$APPDIR/elements-cleanup.sh" \
  --arg bundle "$FINAL_BUNDLE_PATH" \
  --arg shm "$JQ_SHM_PATH" \
+ --arg out_tmp "$JQ_OUT_TMP_DIR" \
  '
   .process.args[0]=$cmd |
   .process.terminal=$terminal |
@@ -326,10 +350,10 @@ _jq \
   .root.readonly=false |
   (.hooks.poststop |= . + [{
    "path": $output_hook,
-   "args": ["elements-output.sh", $argv0, $id, $shm, "/out", $pwd, $output]
+   "args": ["elements-output.sh", $argv0, $id, $out_tmp, "/out", $pwd, $output]
   },{
    "path": $cleanup_hook,
-   "args": ["elements-cleanup.sh", $bundle, $shm]
+   "args": ["elements-cleanup.sh", $bundle, $shm, $out_tmp]
   }])
  '
 
@@ -367,7 +391,8 @@ if [ $__CONFIG_ROOT_COPYUP -ne 0 ]; then
 fi
 
 if [ $__CONFIG__DO_OUTPUT -ne 0 ]; then
- mkdir -m 0700 "$SHM_DIR/out"
+ mkdir -m 0700 "$OUT_TMP_DIR/out"
+ mkdir -m 0700 "$OUT_TMP_DIR/tmp"
 fi
 
 mv "$BOOTSTRAP_BUNDLE/final.json" "$FINAL_BUNDLE/config.json"
