@@ -144,10 +144,15 @@ The runc container ID will be of the format \`[{name}](#name).{instance}\`.
 
     {name}:output
 
-If this argument is defined, a tmpfs will be bind-mounted at `/out` in
-the container, and any files in that tmpfs at exit will be moved to the
-host path specified by the user (which defaults to the AppImage's working
-directory).
+If this argument is defined, a temporary directory will be bind-mounted
+at `/out` in the container, and any files in that directory at exit will
+be moved to the host path specified by the user (which defaults to the
+AppImage's working directory).  In addition, a second temporary directory
+will be bind-mounted at `/tmp/out` as a staging area for the output file.
+
+Both temporary directories will be located in a common parent directory
+in the user-supplied path's parent directory (or the path itself if it
+is a directory).
 
 If `/out` contains one file at exit, that file will be moved to the
 specified host path.  If `/out` contains more than one file, the entire
