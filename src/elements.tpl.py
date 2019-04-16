@@ -949,13 +949,17 @@ PS1_SCRIPT: bytes = br"""
 #!/bin/sh
 
 PS1=$(__ps1_color() {
- local color plain C I
- color=$1
+ local color default plain C I
  
+ color=$1
+ default=17
  plain=$(printf '%s' "$PS1" | sed -e 's/\x1b\[[^m]*m//g')
  
  if [ x"$TERM" != x"" ]; then
-  C=${color:-${ELEMENTS_PS1_COLOR:-17}}  # n/10 = intensity; n%10 = color
+  C=${color:-${ELEMENTS_PS1_COLOR:-$default}}  # n/10 = intensity; n%10 = color
+  if (printf '%s\n' "$C" | grep -q -e '[^0-9]'); then
+   C=${ELEMENTS_PS1_COLOR:-$default}
+  fi
   if [ x"$C" != x"0" ]; then
    I=$((C / 10)); I=${I%.*$}; C=$((C % 10))
    printf '\x1b[%s' "${I};3${C}m$plain" '0m'
