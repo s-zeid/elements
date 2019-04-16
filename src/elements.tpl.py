@@ -214,7 +214,7 @@ class Element:  #{{{1
    
    sh = os.path.join(element_root, "sh")
    with open(sh, "wb") as f:
-    f.write(b"#!/bin/sh\n\nexec /exec /bin/sh \"$@\"\n")
+    f.write(SH_SCRIPT)
    _chmod_x(sh)
    
    out = os.path.join(element_root, "out")
@@ -953,7 +953,7 @@ PS1=$(__ps1_color() {
  
  color=$1
  default=17
- plain=$(printf '%s' "$PS1" | sed -e 's/\x1b\[[^m]*m//g')
+ plain=$(printf '%s' "$PS1" | sed -e 's/\033\[[^m]*m//g')
  
  if [ x"$TERM" != x"" ]; then
   C=${color:-${ELEMENTS_PS1_COLOR:-$default}}  # n/10 = intensity; n%10 = color
@@ -962,15 +962,13 @@ PS1=$(__ps1_color() {
   fi
   if [ x"$C" != x"0" ]; then
    I=$((C / 10)); I=${I%.*$}; C=$((C % 10))
-   printf '\x1b[%s' "${I};3${C}m$plain" '0m'
+   printf '\033[%s' "${I};3${C}m$plain" '0m'
    return
   fi
  fi
  
  printf '%s' "$plain"
 }; __ps1_color "$1")
-
-export PS1
 """.lstrip()
 
 
@@ -978,10 +976,23 @@ export PS1
 PS1_ENV_SCRIPT: bytes = br"""
 #!/bin/sh
 
-PS1='$HOSTNAME:$ELEMENTS_ID:$(pwd=$(pwd); [ x"$pwd" = x"$HOME" ] && printf '%s~' '' || (printf '%s' "$pwd" | sed -e "s,/$,,"; echo /)) '
-export PS1
+PS1='$HOSTNAME${HOSTNAME:+:}$ELEMENTS_ID:$(pwd=$(pwd); [ x"$pwd" = x"$HOME" ] && printf '%s~' '' || (printf '%s' "$pwd" | sed -e "s,/$,,"; echo /)) '
 
 . /.color "$ELEMENTS_PS1_COLOR"
+""".lstrip()
+
+
+# SH_SCRIPT  #{{{1
+SH_SCRIPT: bytes = br"""
+#!/bin/sh
+
+if [ -x "/bin/bash" ]; then
+ exec /exec /bin/bash --norc "$@"
+elif [ -x "/bin/ash" ]; then
+ exec /exec /bin/ash "$@"
+else
+ exec /exec /bin/sh "$@"
+fi
 """.lstrip()
 
 
