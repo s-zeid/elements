@@ -260,16 +260,20 @@ if [ $__CONFIG__DO_OUTPUT -ne 0 ]; then
  OUT_TMP_DIR=$OUT_TMP_DIR_PATH
 fi
 
+RUNC_HOSTNAME=$(hostname 2>/dev/null || echo "${HOSTNAME:-Elements}")
+
 _jq \
  --arg env_magic "ELEMENTS_MAGIC=$ELEMENTS_MAGIC" \
  --arg env_instance "ELEMENTS_INSTANCE=$ELEMENTS_INSTANCE" \
  --arg env_id "ELEMENTS_ID=$ELEMENTS_ID" \
  --arg env_term "TERM=${TERM:-xterm}" \
+ --arg env_hostname "HOSTNAME=$RUNC_HOSTNAME" \
  '.process.env |= (. | map(select(.|startswith("TERM=")|not))) + [
   $env_magic,
   $env_instance,
   $env_id,
-  $env_term
+  $env_term,
+  $env_hostname
  ]'
 
 
@@ -331,7 +335,7 @@ fi
 _jq \
  --arg cmd "/.elements-entry" \
  --argjson terminal $__CONFIG_TERMINAL \
- --arg hostname "$(hostname 2>/dev/null || echo "${HOSTNAME:-Elements}")" \
+ --arg hostname "$RUNC_HOSTNAME" \
  --arg rootfs "$RUNC_ROOTFS" \
  --arg output_hook "$APPDIR/elements-output.sh" \
  --arg argv0 "$ELEMENTS_ARGV0" \
