@@ -60,7 +60,7 @@ def main(argv):  #{{{1
   with open(options.def_, "rb") as def_:
    el = Element(def_.read())
   
-  el.build(options.output)
+  el.build(options.output, print_status=True, from_filename=options.def_)
  except RuntimeError as error:
   print("elements: error: " + str(error), file=sys.stderr)
   return 1
@@ -173,14 +173,23 @@ class Element:  #{{{1
    else:
     self.config[key] = str(default)
  
- def build(self, to_filename: bytes) -> None:  #{{{2
+ def build(self, to_filename: str,  #{{{2
+           print_status: bool = False, from_filename: str = "") -> None:
   def _chmod_x(path):
    os.chmod(path, os.stat(path).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+  
+  def _status(msg: str = "", color: int = 7, intensity: int = 1):
+   if print_status:
+    print("\033[0;%d;3%dm%s\033[0m" % (intensity, color, msg), file=sys.stderr)
+  
+  _status("Elements v%s" % __version__)
+  _status()
   
   self._parse()
   
   with tempfile.TemporaryDirectory(prefix=".elements-build.") as tmp:
    # build bootstrap fs archive  #{{{3
+   _status("Building bootstrap filesystem...")
    with tempfile.TemporaryDirectory(prefix="bootstrap.", dir=tmp) as bootstrap_dir:
     bootstrap_def = os.path.join(bootstrap_dir, "bootstrap.def")
     with open(bootstrap_def, "wb") as f:
@@ -192,6 +201,11 @@ class Element:  #{{{1
     bootstrap_tar = os.path.join(tmp, "bootstrap.tar")
     with tarfile.open(bootstrap_tar, "w") as tar:
      tar.add(bootstrap_dir, arcname=".", recursive=True)
+   _status("")
+   
+   # rootfs status message  #{{{3
+   _status("Building root filesystem%s..."
+           % (" from `%s`" % from_filename if from_filename else ""))
    
    # build rootfs  #{{{3
    element_def = os.path.join(tmp, "element.def")
@@ -237,6 +251,10 @@ class Element:  #{{{1
    with open(ps1_env, "wb") as f:
     f.write(PS1_ENV_SCRIPT)
    _chmod_x(ps1_env)
+   
+   # AppImage status message  #{{{3
+   _status()
+   _status("Building AppImage `%s`..." % to_filename)
    
    # AppImage dummy files  #{{{3
    desktop = os.path.join(tmp, "dummy.desktop")
@@ -294,6 +312,12 @@ class Element:  #{{{1
    
    self._run(["appimagetool", "--no-appstream", tmp, to_filename], env=appimagetool_env)
    _chmod_x(to_filename)
+   
+   # finished status message  #{{{3
+   _status()
+   _status("Built `%s`%s."
+           % (to_filename, 
+              " from `%s`" % from_filename if from_filename else ""))
  
  def _run(self, cmd: List[Union[str, bytes]], *args, **kwargs):  #{{{2
   name_any = cmd[0]

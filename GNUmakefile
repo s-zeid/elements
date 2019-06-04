@@ -32,6 +32,7 @@ elements: src/elements.tpl.py src/loader.tpl.sh
 	 "$$v" > "$@"; \
 	 r=$$?; [ $$r -ne 0 ] && rm -f "$@" || true
 	chmod +x "$@"
+	@([ x"${MAKECMDGOALS}" != x"$@" ]&&[ x"${MAKECMDGOALS}" != x"" ]) && echo || true
 
 
 # Manual testing
@@ -41,6 +42,7 @@ TEST_ELEMENT := test/parsing
 
 ${TEST_ELEMENT}/element: elements ${TEST_ELEMENT}/element.def
 	sudo "./$<" "${TEST_ELEMENT}/element.def" "$@"
+	@([ x"${MAKECMDGOALS}" != x"$@" ]&&[ x"${MAKECMDGOALS}" != x"" ]) && echo || true
 
 
 test: ${TEST_ELEMENT}/element
