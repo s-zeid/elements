@@ -26,36 +26,36 @@ What Elements is
 * **Elements is for distributing containerized applications in a form that
   is user-friendly.**  (Or at least, "command-line user-friendly".)  Users
   of Elements containers are not expected to know anything about container
-  runtimes, registries, the `-i`, `-t`, or `--rm` options to Podman or
-  Docker, how to use Docker securely, the internal filesystem layout of or
-  port numbers used in the container, etc.  Containers are expected to
-  support rootless operation by default.  The only runtime dependency that
-  is not normally included in most desktop distributions is runc.  (runc is
-  not bundled for security reasons.)
+  runtimes, registries, the `-i`, `-t`, `--rm`, or any other options to
+  Podmabn or Docker, how to use Docker securely, the internal filesystem
+  layout of or port numbers used in the container, etc.  Containers are
+  expected to support rootless operation by default.  The only runtime
+  dependency that is not normally included in most desktop distributions
+  is runc (which is not bundled with images for security reasons.)
 
-* **Elements is for container authors who desire a simple container runtime
-  with few surprises.**  This includes personal services, development
-  tasks, and other cases where using (or learning) a more heavyweight runtime
-  is not desirable.  Container registries are only a concern at build time,
-  the container only exists while the AppImage is running, and the container
-  image's location is always known.
+* **Elements is for container authors who desire a simple container runtime.**
+  This includes personal services, development tasks, and other cases where
+  using (or learning) a more heavyweight runtime is not desirable.  Container
+  registries are only a concern at build time, the runc container only exists
+  while the AppImage is running, and the user always knows where the container
+  image is located.
 
 * **Elements is for easy rootless containers.**  Elements containers are
   designed to run rootlessly without any extra configuration needed, even if
   this means making certain sacrifices.  For example, Elements containers
-  should not rely on UID or GID mapping for any UID/GID other than 0 (root),
-  since users are not expected to configure `/etc/subuid` or `/etc/subgid`.
+  should not rely on UID or GID mapping for any guest UID/GID other than 0
+  (root), since users are not expected to configure `/etc/subuid` or
+  `/etc/subgid`.
 
 
 What Elements is _not_
 ----------------------
 
 * **Elements is not a replacement for Podman, rkt, Docker, or other mainstream
-  container engines.**
+  container engines.**  ELements is designed for small-scale containers and
+  mostly personal, development, and end-user distribution use cases.
 
-* **Elements is not "enterprise-ready".**  It is designed for small-scale
-  containers and mostly personal, development, and end-user distribution use
-  cases.
+* **Elements is not "enterprise-ready".**  See above.
 
 * **Elements is not an orchestration engine.**  I do plan to add some support
   for pods, but this will be limited to shipping and running multiple
