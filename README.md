@@ -2,8 +2,9 @@
 =======================================================
 
 [![](https://img.shields.io/badge/license-X11-green.svg?style=flat-square)
-](blob/master/LICENSE.txt)
-![](https://img.shields.io/badge/status-pre--alpha-red.svg?style=flat-square)  
+](LICENSE.txt)
+[![](https://img.shields.io/badge/status-pre--alpha-red.svg?style=flat-square)
+]()
 
 A tool to generate single-file, runc-based AppImage containers.
 
