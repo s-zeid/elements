@@ -47,7 +47,8 @@ What Elements is _not_
   container engines.**
 
 * **Elements is not "enterprise-ready".**  It is designed for small-scale
-  and mostly personal and development use cases.
+  containers and mostly personal, development, and end-user distribution use
+  cases.
 
 * **Elements is not an orchestration engine.**  I do plan to add some support
   for pods, but this will be limited to shipping and running multiple
