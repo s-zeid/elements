@@ -7,29 +7,70 @@ in a single AppImage file.  The definition file can be used to specify if
 and how parameters such as bind mounts and environment variables are passed
 as arguments to the container's AppImage.
 
-Elements uses an extended version of [Singularity Definition Files][sdf]
-to define containers and has a container build-time dependency on Singularity.
-(This is because I like the syntax better than that of Dockerfiles, but I
-am open to adding support for Dockerfiles in the future.)  Singularity is
-not used to run Elements containers, and unlike Singularity, **filesystems,
-PID and IPC namespaces, and the environment ARE contained by default**.
 
-At build time, Elements creates a POSIX-compliant (portable) shell script
-which is shipped in the AppImage.  This script parses the user-supplied
-arguments and constructs, runs, and tears down the underlying runc container
-at a temporary path.  At present, this script relies on a minimal (~3 MB
-compressed) Alpine Linux rootfs, which is generated at container build time,
-is included in the AppImage, and contains jq for the purpose of configuring
-runc.
+Current limitations
+-------------------
 
-There are no plans to rewrite Elements or the loader script in Go.  The
-choice of Python and POSIX shell was intentional; however, I would like to
-move some performance-sensitive loader code to a compiled language other
-than Go in the future (this would allow getting rid of the bootstrap
-filesystem).
+Please see [the "Current limitations" section][limitations] of the README
+file for some important notes about the current implementation.  I plan to
+do a backwards-incompatible rewrite in order to address those issues.
+
+[limitations]: https://gitlab.com/scottywz/elements#current-limitations
 
 
-[sdf]: https://www.sylabs.io/guides/3.0/user-guide/definition_files.html
+What Elements is
+----------------
+
+* **Elements is for distributing containerized applications in a form that
+  is user-friendly.**  (Or at least, "command-line user-friendly".)  Users
+  of Elements containers are not expected to know anything about container
+  runtimes, registries, the `-i`, `-t`, or `--rm` options to Podman or
+  Docker, how to use Docker securely, the internal filesystem layout of or
+  port numbers used in the container, `/etc/subuid`/`/etc/subgid`, etc.  The
+  only runtime dependency that is not normally included in most desktop
+  distributions is runc.  (runc is not bundled for security reasons.)
+
+* **Elements is for container authors who desire a simple container runtime
+  with few surprises.**  This includes personal services, development
+  tasks, and other cases where using (or learning) a more heavyweight runtime
+  is not desirable.  Container registries are only a concern at build time,
+  the container only exists while the AppImage is running, and the container
+  image's location is always known.
+
+
+What Elements is _not_
+----------------------
+
+* **Elements is not a replacement for Podman, rkt, Docker, or other mainstream
+  container engines.**
+
+* **Elements is not "enterprise-ready".**  It is designed for small-scale
+  and mostly personal and development use cases.
+
+* **Elements is not an orchestration engine.**  I do plan to add some support
+  for pods, but this will be limited to shipping and running multiple
+  container images in/from the same AppImage and sharing their resources.
+  Also, like the containers themselves, major runtime options like resource
+  sharing will be defined in the recipe file.
+
+* **Elements does not interact with any container registries at runtime, and
+  images are not OCI-compliant.**  This is due to the use cases for which
+  Elements is designed.
+
+* **Elements is not for low-level needs.**  Elements includes default
+  behavior that is designed to remove some common pain points of running
+  containers, such as allocating a TTY and mounting `/etc/resolv.conf`
+  for DNS resolution.  Low-level options are hidden from both the container
+  author and user.
+
+* **Elements is not for critical applications.**  If your container failing
+  would result in death; bodily injury; emotional distress; property damage
+  or loss; financial loss; [blood, devastation, death, war, and horror][bddwh];
+  incarceration; other legal action; and/or any other serious consequences;
+  then Elements is not right for you.  If you choose to use it anyway for
+  such containers, then you are doing so at your own risk.
+
+[bddwh]: https://www.imdb.com/videoplayer/vi1619377433
 
 
 {% include dev-warning.html %}
