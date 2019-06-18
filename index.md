@@ -33,12 +33,12 @@ What Elements is
   dependency that is not normally included in most desktop distributions
   is runc (which is not bundled with images for security reasons.)
 
-* **Elements is for container authors who desire a simple container runtime.**
-  This includes personal services, development tasks, and other cases where
-  using (or learning) a more heavyweight runtime is not desirable.  Container
-  registries are only a concern at build time, the runc container only exists
-  while the AppImage is running, and the user always knows where the container
-  image is located.
+* **Elements is for container users and authors who desire a simple container
+  runtime.**  This includes personal services, development tasks, and other
+  cases where using (or learning) a more heavyweight runtime is not desirable.
+  Container registries are only a concern at build time, the runc container
+  only exists while the AppImage is running, and the user always knows where
+  the container image is located.
 
 * **Elements is for easy rootless containers.**  Elements containers are
   designed to run rootlessly without any extra configuration needed, even if
@@ -52,7 +52,7 @@ What Elements is _not_
 ----------------------
 
 * **Elements is not a replacement for Podman, rkt, Docker, or other mainstream
-  container engines.**  Elements does not use them, but is designed for
+  container engines.**  Elements does not use them, but it is designed for
   small-scale containers and mostly personal, development, and end-user
   distribution use cases.
 
