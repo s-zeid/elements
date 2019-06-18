@@ -1,6 +1,10 @@
 [Elements](https://www.youtube.com/watch?v=N0ziDSLJhq4)
 =======================================================
 
+[![](https://img.shields.io/badge/license-X11-green.svg?style=flat-square)
+](blob/master/LICENSE.txt)
+![](https://img.shields.io/badge/status-pre--alpha-red.svg?style=flat-square)  
+
 A tool to generate single-file, runc-based AppImage containers.
 
 Copyright (c) 2019 S. Zeid.  Some rights reserved under the X11 License.
