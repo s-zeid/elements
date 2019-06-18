@@ -52,8 +52,9 @@ What Elements is _not_
 ----------------------
 
 * **Elements is not a replacement for Podman, rkt, Docker, or other mainstream
-  container engines.**  ELements is designed for small-scale containers and
-  mostly personal, development, and end-user distribution use cases.
+  container engines.**  Elements does not use them, but is designed for
+  small-scale containers and mostly personal, development, and end-user
+  distribution use cases.
 
 * **Elements is not "enterprise-ready".**  See above.
 
