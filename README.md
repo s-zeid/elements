@@ -31,11 +31,11 @@ but in the meantime there are some drawbacks to the current implementation:
 
 * Currently, Elements uses an extended version of [Singularity Definition
   Files][sdf] to define containers and has a container build-time dependency
-  on Singularity.  Singularity is not used to run Elements containers, and
+  on Singularity.  (Singularity is not used to run Elements containers, and
   unlike Singularity, **filesystems, PID and IPC namespaces, and the
-  environment ARE contained by default**.  
+  environment ARE contained by default**.)  
     
-  This also means that root is required to build the container image, layer
+  This means that root is required to build the container image, layer
   caching is non-existent, and the definition format is completely different
   from Dockerfiles.  I plan to switch to Buildah and an extended (but
   backwards-compatible) Dockerfile syntax, which will resolve all these issues.
@@ -55,7 +55,7 @@ but in the meantime there are some drawbacks to the current implementation:
   
   The fact that this is a shell script, the script itself is inefficient, and
   it has to start up and tear down a container just for jq multiple times
-  obviously results in decreased performance and increased attack surface.
+  obviously results in slower startup times and increased attack surface.
   I plan to switch to a compiled runtime binary that includes its own
   (third-party) JSON library and also uses an intermediate config file to
   define the command-line arguments and other parts that are currently
