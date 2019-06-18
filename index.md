@@ -28,9 +28,10 @@ What Elements is
   of Elements containers are not expected to know anything about container
   runtimes, registries, the `-i`, `-t`, or `--rm` options to Podman or
   Docker, how to use Docker securely, the internal filesystem layout of or
-  port numbers used in the container, `/etc/subuid`/`/etc/subgid`, etc.  The
-  only runtime dependency that is not normally included in most desktop
-  distributions is runc.  (runc is not bundled for security reasons.)
+  port numbers used in the container, etc.  Containers are expected to
+  support rootless operation by default.  The only runtime dependency that
+  is not normally included in most desktop distributions is runc.  (runc is
+  not bundled for security reasons.)
 
 * **Elements is for container authors who desire a simple container runtime
   with few surprises.**  This includes personal services, development
@@ -38,6 +39,12 @@ What Elements is
   is not desirable.  Container registries are only a concern at build time,
   the container only exists while the AppImage is running, and the container
   image's location is always known.
+
+* **Elements is for easy rootless containers.**  Elements containers are
+  designed to run rootlessly without any extra configuration needed, even if
+  this means making certain sacrifices.  For example, Elements containers
+  should not rely on UID or GID mapping for any UID/GID other than 0 (root),
+  since users are not expected to configure `/etc/subuid` or `/etc/subgid`.
 
 
 What Elements is _not_
