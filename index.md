@@ -24,10 +24,10 @@ What Elements is
 ----------------
 
 * **Elements is for distributing containerized applications in a form that
-  is user-friendly.**  (Or at least, "command-line user-friendly".)  Users
+  is user-friendly.**  (Or, at least, "command-line user-friendly".)  Users
   of Elements containers are not expected to know anything about container
   runtimes, registries, the `-i`, `-t`, `--rm`, or any other options to
-  Podmabn or Docker, how to use Docker securely, the internal filesystem
+  Podman or Docker, how to use Docker securely, the internal filesystem
   layout of or port numbers used in the container, etc.  Containers are
   expected to support rootless operation by default.  The only runtime
   dependency that is not normally included in most desktop distributions
