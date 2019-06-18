@@ -17,6 +17,8 @@ do a backwards-incompatible rewrite in order to address those issues.
 
 [limitations]: https://gitlab.com/scottywz/elements#current-limitations
 
+{% include dev-warning.html %}
+
 
 What Elements is
 ----------------
@@ -51,7 +53,7 @@ What Elements is _not_
   for pods, but this will be limited to shipping and running multiple
   container images in/from the same AppImage and sharing their resources.
   Also, like the containers themselves, major runtime options like resource
-  sharing will be defined in the recipe file.
+  sharing will be defined in the definition file.
 
 * **Elements does not interact with any container registries at runtime, and
   images are not OCI-compliant.**  This is due to the use cases for which
@@ -67,10 +69,7 @@ What Elements is _not_
   would result in death; bodily injury; emotional distress; property damage
   or loss; financial loss; [blood, devastation, death, war, and horror][bddwh];
   incarceration; other legal action; and/or any other serious consequences;
-  then Elements is not right for you.  If you choose to use it anyway for
-  such containers, then you are doing so at your own risk.
+  then Elements is not right for your use case.  If you choose to use it
+  anyway for such containers, then you are doing so at your own risk.
 
 [bddwh]: https://www.imdb.com/videoplayer/vi1619377433
-
-
-{% include dev-warning.html %}
