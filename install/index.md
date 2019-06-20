@@ -10,8 +10,8 @@ _**Note:**  Currently, Linux is the only supported operating system._
 Contents
 --------
 
-* [Running images](#running)
-* [Building images](#building)
+* [Running images](#running-images)
+* [Building images](#building-images)
     * [Requirements](#requirements)
     * [Setup](#setup)
 
