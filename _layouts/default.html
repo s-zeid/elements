@@ -3,7 +3,7 @@
 {%- capture root %}{%- for _ in _parts %}/..{% endfor %}{% endcapture %}
 {%- assign root = root | default: "." | replace_first: "/", "" %}
 {%- assign root_ = root | append: "/" %}
-<html class="top" data-root="{{ root }}">
+<html class="top" data-root="{{ root }}"{% if site.language %} lang="{{ site.language }}"{% endif %}>
  <head>
   <meta charset="utf-8" />
   <title>{{ site.title | strip_html | escape }}{% if page.title %} · {{ page.title | strip_html | escape }}{% endif %}</title>
