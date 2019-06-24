@@ -60,7 +60,8 @@ def main(argv):  #{{{1
   with open(options.def_, "rb") as def_:
    el = Element(def_.read())
   
-  el.build(options.output, print_status=True, from_filename=options.def_)
+  el.build(options.output, os.path.dirname(options.def_),
+           print_status=True, from_filename=options.def_)
  except RuntimeError as error:
   print("elements: error: " + str(error), file=sys.stderr)
   return 1
@@ -173,7 +174,7 @@ class Element:  #{{{1
    else:
     self.config[key] = str(default)
  
- def build(self, to_filename: str,  #{{{2
+ def build(self, to_filename: str, context_dir: str,  #{{{2
            print_status: bool = False, from_filename: str = "") -> None:
   def _chmod_x(path):
    os.chmod(path, os.stat(path).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
@@ -213,7 +214,8 @@ class Element:  #{{{1
     f.write(self.def_)
    
    element_root = os.path.join(tmp, "rootfs")
-   self._run(["singularity", "build", "--sandbox", element_root, element_def])
+   self._run(["singularity", "build", "--sandbox", element_root, element_def],
+             cwd=context_dir)
    
    entry = os.path.join(element_root, ".elements-entry")
    with open(entry, "wb") as f:

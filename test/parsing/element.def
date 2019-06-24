@@ -17,17 +17,28 @@ Bootstrap: docker
 From: alpine
 
 
+%files
+ files/hello.txt /hello.txt
+
+
 %post
  apk add fortune sl
  mkdir /data
 
 
 %runscript
- (
-  SHLVL=$((SHLVL+2))
-  eval "printf %s \"$(/exec printenv PS1)\""
-  (cmd='env | sort | sed -e "s/^PS1=.*\$/PS1=.../g"'; echo "$cmd"; eval "/exec $cmd")
- )
+ ps1_cmd() {
+  local cmd="$1"
+  (
+   SHLVL=$((SHLVL+2))
+   eval "printf %s \"$(/exec printenv PS1)\""
+   (printf '%s\n' "$cmd"; eval "/exec $cmd")
+  )
+ }
+ 
+ ps1_cmd 'env | sort | sed -e "s/^PS1=.*\$/PS1=.../g"'
+ ps1_cmd 'cat /hello.txt'
+ 
  exec /sh
 
 
