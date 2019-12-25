@@ -60,7 +60,7 @@ def main(argv):  #{{{1
   with open(options.def_, "rb") as def_:
    el = Element(def_.read())
   
-  el.build(options.output, os.path.dirname(options.def_),
+  el.build(options.output, os.path.dirname(options.def_) or ".",
            print_status=True, from_filename=options.def_)
  except RuntimeError as error:
   print("elements: error: " + str(error), file=sys.stderr)
