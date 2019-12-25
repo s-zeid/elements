@@ -335,8 +335,17 @@ class Element:  #{{{1
   
   try:
    r = subprocess.run(cmd, *args, **kwargs)
-  except FileNotFoundError:
-   raise ElementError("%s is not installed on the PATH" % name)
+  except FileNotFoundError as exc:
+   exc_name_any = exc.filename
+   if isinstance(exc_name_any, bytes):
+    # needed for Python < 3.4
+    exc_name = exc_name_any.decode(sys.getfilesystemencoding())
+   else:
+    exc_name = str(exc_name_any)
+   if exc_name == name:
+    raise ElementError("%s is not installed on the PATH" % name)
+   else:
+    raise
   if check and r.returncode:
    raise ElementError("%s failed with exit code %d" % (name, r.returncode))
   
