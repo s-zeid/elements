@@ -124,6 +124,8 @@ def _parse_args(argv):  #{{{1
 
 class Element:  #{{{1
  def_: bytes
+ _def_is_docker: bool = False
+ _def_docker_ref: str = ""
  
  args: List["Arg"]
  binds: List["Bind"]
@@ -186,9 +188,9 @@ class Element:  #{{{1
   _status("Elements v%s" % __version__)
   _status()
   
-  self._parse()
-  
   with tempfile.TemporaryDirectory(prefix=".elements-build.") as tmp:
+   parsed_def = self._parse(tmpdir=tmp)
+   
    # build bootstrap fs archive  #{{{3
    _status("Building bootstrap filesystem...")
    with tempfile.TemporaryDirectory(prefix="bootstrap.", dir=tmp) as bootstrap_dir:
@@ -204,6 +206,21 @@ class Element:  #{{{1
      tar.add(bootstrap_dir, arcname=".", recursive=True)
    _status("")
    
+   # skopeo copy status message  #{{{3
+   if self._def_is_docker:
+    _status("Downloading Docker image %s..." % self._def_docker_ref)
+   
+   # skopeo copy -- needed to force correct architecture variant for armv7l  #{{{3
+   if self._def_is_docker:
+    skopeo_args = ["skopeo"]
+    if os.uname().machine == "armv7l":
+     skopeo_args += ["--override-variant", "v7"]
+    ref = self._def_docker_ref
+    oci_dir = os.path.join(tmp, "docker-oci")
+    self._run(skopeo_args + ["copy", f"docker://{ref}", f"containers-storage:{ref}"])
+    self._run(skopeo_args + ["copy", f"containers-storage:{ref}", f"oci:{oci_dir}"])
+    _status()
+   
    # rootfs status message  #{{{3
    _status("Building root filesystem%s..."
            % (" from `%s`" % from_filename if from_filename else ""))
@@ -211,11 +228,17 @@ class Element:  #{{{1
    # build rootfs  #{{{3
    element_def = os.path.join(tmp, "element.def")
    with open(element_def, "wb") as f:
-    f.write(self.def_)
+    f.write(parsed_def)
    
    element_root = os.path.join(tmp, "rootfs")
    self._run(["singularity", "build", "--sandbox", element_root, element_def],
              cwd=context_dir)
+   
+   if self._def_is_docker:
+    # tempfile.TemporaryDirectory._rmtree has better error handling
+    with tempfile.TemporaryDirectory(prefix="cleanup.", dir=tmp) as cleanup_dir:
+     print(cleanup_dir)
+     os.rename(oci_dir, os.path.join(cleanup_dir, "docker-oci"))
    
    entry = os.path.join(element_root, ".elements-entry")
    with open(entry, "wb") as f:
@@ -353,23 +376,33 @@ class Element:  #{{{1
   
   return r
    
- def _parse(self) -> None:  #{{{2
-  self._parse_def()
+ def _parse(self, tmpdir: str) -> bytes:  #{{{2
+  result = self._parse_def(tmpdir=tmpdir)
   self._parse_args(str(self.config["args"]))
   self._parse_binds(str(self.config["bind"]))
   self._parse_env(str(self.config["env"]))
+  return result
 
- def _parse_def(self) -> None:  #{{{2
+ def _parse_def(self, tmpdir: str) -> bytes:  #{{{2
   LINE_MAGIC = b"#Elements."
   LINE_MAGIC_LEN = len(LINE_MAGIC.decode("utf-8"))
   
   reader = io.BytesIO(self.def_)
+  header_io = io.BytesIO(b"")
+  body_io = io.BytesIO(b"")
+  in_header = True
+  
   line = ""
   continuation = False
   for line_bytes in reader:
+   if not in_header or line_bytes.startswith(b"%"):
+    in_header = False
+    body_io.write(line_bytes)
+    continue
+   else:
+    header_io.write(line_bytes)
+   
    line_bytes = line_bytes.strip()
-   if line_bytes.startswith(b"%"):
-    break
    
    if line_bytes.startswith(LINE_MAGIC):
     line = line_bytes.decode("utf-8")
@@ -410,7 +443,21 @@ class Element:  #{{{1
      self.config[key] = value
      continuation = False
      line = ""
-
+  
+  # extract docker reference, replace OCI temporary OCI location,
+  # and change bootstrap key accordingly
+  header = header_io.getvalue().decode("utf-8")
+  re_flags = re.I | re.M
+  if re.search(r"^bootstrap:\s*docker\s*$", header, flags=re_flags):
+   self._def_is_docker = True
+   match = re.search(r"^from:(.*)$", header, flags=re_flags)
+   if match and match.group(1):
+    self._def_docker_ref = match.group(1).strip()
+    oci_dir = os.path.join(tmpdir, "docker-oci")
+    header = re.sub(r"^bootstrap:\s*docker\s*$", "Bootstrap: oci", header, flags=re_flags)
+    header = re.sub(r"^from:.*$", "From: " + oci_dir, header, flags=re_flags)
+  
+  return header.encode("utf-8") + body_io.getvalue()
  
  def _parse_args(self, spec: str) -> None:  #{{{2
   args = shlex.split(spec)

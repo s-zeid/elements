@@ -37,6 +37,7 @@ From: alpine
  }
  
  ps1_cmd 'env | sort | sed -e "s/^PS1=.*\$/PS1=.../g"'
+ ps1_cmd 'cat /etc/apk/arch'
  ps1_cmd 'cat /hello.txt'
  
  exec /sh
