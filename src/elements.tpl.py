@@ -321,7 +321,7 @@ class Element:  #{{{1
            % (to_filename, 
               " from `%s`" % from_filename if from_filename else ""))
  
- def _run(self, cmd: List[Union[str, bytes]], *args, **kwargs):  #{{{2
+ def _run(self, cmd: List[str], *args, **kwargs):  #{{{2
   name_any = cmd[0]
   if isinstance(name_any, bytes):
    name = name_any.decode(sys.getfilesystemencoding())
@@ -332,6 +332,8 @@ class Element:  #{{{1
   if "check" in kwargs and not kwargs["check"]:
    check = False
   kwargs["check"] = False
+  
+  print("+", " ".join(shlex.quote(arg) for arg in cmd), file=sys.stderr)
   
   try:
    r = subprocess.run(cmd, *args, **kwargs)
