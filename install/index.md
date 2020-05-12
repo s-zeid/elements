@@ -36,6 +36,8 @@ the following items on the root user's $PATH:
 
 * Python 3
 * [Singularity](https://www.sylabs.io/singularity/)
+* [Skopeo](https://github.com/containers/skopeo)
+  ([Debian packages](https://build.opensuse.org/repositories/devel:kubic:libcontainers:stable))
 * [appimagetool](https://github.com/AppImage/AppImageKit/releases)
 
 
